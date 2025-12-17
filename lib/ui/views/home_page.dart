@@ -44,7 +44,8 @@ class _HomePageState extends State<HomePage> {
           children: [
             Image.asset(
               logoPath,
-              height: 40, // Ajustez la taille selon votre logo
+              height: 55, // Augmenté de 40 à 55
+              fit: BoxFit.contain, // S'assure que le logo ne dépasse pas
               errorBuilder: (context, error, stackTrace) => const Icon(Icons.movie), 
             ),
             const SizedBox(width: 10),
