@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:cineflow/providers/movie_provider.dart';
 import 'movie_card.dart';
 import 'empty_state.dart';
+import 'package:cineflow/ui/views/history_page.dart';
+
 
 class HistorySection extends StatelessWidget {
   const HistorySection({super.key});
@@ -15,13 +17,36 @@ class HistorySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-          child: Text(
-            "Historique",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Historique",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              if (history.isNotEmpty)
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HistoryPage()),
+                    );
+                  },
+                  child: Text(
+                    "Voir plus",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
+
+
         if (history.isEmpty)
           const SizedBox(
             height: 120,

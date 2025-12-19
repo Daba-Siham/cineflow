@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cineflow/data/services/recommendation_service.dart';
 import 'package:cineflow/ui/widgets/movie_card.dart';
 import 'empty_state.dart';
+import 'package:cineflow/ui/views/recommendations_page.dart';
 
 class RecommendationSection extends StatelessWidget {
   const RecommendationSection({super.key});
@@ -23,11 +24,31 @@ class RecommendationSection extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-              child: Text(
-                "Suggestions automatiques",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Suggestions automatiques",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const RecommendationsPage()),
+                      );
+                    },
+                    child: Text(
+                      "Voir plus",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             if (recos.isEmpty)
@@ -43,9 +64,7 @@ class RecommendationSection extends StatelessWidget {
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: recos.length,
-                  itemBuilder: (context, index) {
-                    return MovieCard(movie: recos[index]);
-                  },
+                  itemBuilder: (context, index) => MovieCard(movie: recos[index]),
                 ),
               ),
           ],
