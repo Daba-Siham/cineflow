@@ -5,6 +5,8 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import 'package:cineflow/providers/movie_provider.dart';
 import 'movie_details_page.dart';
+import '../widgets/history_section.dart';
+import '../widgets/recommendation_section.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -30,24 +32,31 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _initSpeech() async {
     _speechAvailable = await _speech.initialize();
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
-    _controller.dispose();
     _speech.stop();
+    _controller.dispose();
     super.dispose();
   }
 
   void _onSearchChanged(String value) {
     _debounce?.cancel();
+
+    final query = value.trim();
+    setState(() {});
+
+
+    if (query.isEmpty) {
+      context.read<MovieProvider>().clearSearch();
+      return;
+    }
+
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      final query = value.trim();
-      if (query.isNotEmpty) {
-        context.read<MovieProvider>().search(query);
-      }
+      context.read<MovieProvider>().search(query);
     });
   }
 
@@ -56,11 +65,12 @@ class _SearchPageState extends State<SearchPage> {
 
     if (_isListening) {
       await _speech.stop();
-      setState(() => _isListening = false);
+      if (mounted) setState(() => _isListening = false);
     } else {
-      setState(() => _isListening = true);
+      if (mounted) setState(() => _isListening = true);
+
       await _speech.listen(
-        localeId: 'fr_FR', // ou 'en_US' selon ton besoin
+        localeId: 'fr_FR',
         onResult: (result) {
           final text = result.recognizedWords;
           _controller.text = text;
@@ -84,9 +94,7 @@ class _SearchPageState extends State<SearchPage> {
         children: [
           TextField(
             controller: _controller,
-            style: TextStyle(
-              color: isDarkMode ? Colors.white : Colors.black,
-            ),
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
             decoration: InputDecoration(
               hintText: 'Rechercher un film...',
               hintStyle: TextStyle(
@@ -96,16 +104,28 @@ class _SearchPageState extends State<SearchPage> {
                 Icons.search,
                 color: Theme.of(context).colorScheme.primary,
               ),
-              // 🔴 Icône micro à droite
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _isListening ? Icons.mic : Icons.mic_none,
-                  color: _isListening
-                      ? Colors.red
-                      : Theme.of(context).colorScheme.primary,
-                ),
-                onPressed: _toggleListening,
-              ),
+              suffixIcon: Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    if (_controller.text.isNotEmpty)
+      IconButton(
+        icon: const Icon(Icons.close),
+        onPressed: () {
+          _controller.clear();
+          context.read<MovieProvider>().clearSearch();
+          setState(() {});
+        },
+      ),
+    IconButton(
+      icon: Icon(
+        _isListening ? Icons.mic : Icons.mic_none,
+        color: _isListening ? Colors.red : Theme.of(context).colorScheme.primary,
+      ),
+      onPressed: _toggleListening,
+    ),
+  ],
+),
+
               filled: true,
               fillColor: isDarkMode ? Colors.grey[900] : Colors.grey[200],
               border: OutlineInputBorder(
@@ -115,14 +135,11 @@ class _SearchPageState extends State<SearchPage> {
             ),
             onChanged: _onSearchChanged,
           ),
-
-          const SizedBox(height: 20),
-
+          const SizedBox(height: 16),
           Expanded(
             child: Builder(
               builder: (context) {
-                if (movieProvider.isLoading &&
-                    movieProvider.results.isEmpty) {
+                if (movieProvider.isLoading && movieProvider.results.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
@@ -132,10 +149,14 @@ class _SearchPageState extends State<SearchPage> {
                 }
 
                 if (movieProvider.results.isEmpty) {
-                  return Center(
-                    child: Text(
-                      "Entrez un titre ou utilisez le micro pour commencer",
-                      style: Theme.of(context).textTheme.bodyMedium,
+                  return const SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        HistorySection(),
+                        SizedBox(height: 20),
+                        RecommendationSection(),
+                        SizedBox(height: 20),
+                      ],
                     ),
                   );
                 }
@@ -153,15 +174,13 @@ class _SearchPageState extends State<SearchPage> {
                                     movie.poster,
                                     width: 50,
                                     fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) {
+                                    errorBuilder: (context, error, stackTrace) {
                                       return const Icon(Icons.movie);
                                     },
                                   )
                                 : const Icon(Icons.movie),
                             title: Text(movie.title),
-                            subtitle:
-                                Text('${movie.year} • ${movie.type}'),
+                            subtitle: Text('${movie.year} • ${movie.type}'),
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -177,8 +196,7 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     if (movieProvider.hasMore)
                       Padding(
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: ElevatedButton(
                           onPressed: () {
                             context.read<MovieProvider>().loadMore();

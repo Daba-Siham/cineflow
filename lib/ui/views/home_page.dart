@@ -4,15 +4,30 @@ import 'package:cineflow/ui/views/favorites_page.dart';
 import 'package:provider/provider.dart';
 import 'package:cineflow/providers/theme_provider.dart';
 import 'package:cineflow/ui/views/settings_page.dart';
+import '../widgets/history_section.dart';
+import '../widgets/recommendation_section.dart';
+import 'package:cineflow/providers/movie_provider.dart';
 
 // Une page d'accueil simple pour la section "Accueil"
 class MainWelcomePage extends StatelessWidget {
   const MainWelcomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text("Bienvenue sur CineFlow !"));
+    return const SingleChildScrollView(
+      child: Column(
+        children: [
+          SizedBox(height: 12),
+          HistorySection(),
+          SizedBox(height: 20),
+          RecommendationSection(),
+          SizedBox(height: 20),
+        ],
+      ),
+    );
   }
 }
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -81,25 +96,31 @@ class _HomePageState extends State<HomePage> {
 
       // Barre de navigation
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: index,
-        onTap: (i) => setState(() => index = i),
-        selectedItemColor: Colors.red,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Accueil",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: "Recherche",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: "Favoris",
-          ),
-        ],
-      ),
+  currentIndex: index,
+  onTap: (i) {
+    if (index == 1 && i != 1) {
+      context.read<MovieProvider>().clearSearch();
+    }
+    setState(() => index = i);
+  },
+  selectedItemColor: Colors.red,
+  unselectedItemColor: Colors.grey,
+  items: const [
+    BottomNavigationBarItem(
+      icon: Icon(Icons.home),
+      label: "Accueil",
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.search),
+      label: "Recherche",
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.favorite),
+      label: "Favoris",
+    ),
+  ],
+),
+
     );
   }
 }

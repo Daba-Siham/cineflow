@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cineflow/providers/movie_provider.dart';
 import 'package:cineflow/data/models/movie.dart';
 import 'package:cineflow/data/models/movie_detail.dart';
 import 'package:cineflow/data/services/api_service.dart';
@@ -25,9 +27,12 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
   }
 
   Future<void> _loadDetails() async {
+    MovieDetail? data;
+
     try {
-      final data = await _apiService.getMovieDetail(widget.movie.imdbID);
+      data = await _apiService.getMovieDetail(widget.movie.imdbID);
       if (!mounted) return;
+
       setState(() {
         _details = data;
         if (data == null) {
@@ -35,12 +40,28 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
         }
         _isLoading = false;
       });
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       setState(() {
         _errorMessage = 'Erreur lors du chargement des détails.';
         _isLoading = false;
       });
+      return;
+    }
+
+    if (!mounted) return;
+
+    if (data != null) {
+      final movieForHistory = Movie(
+        imdbID: widget.movie.imdbID,
+        title: widget.movie.title,
+        year: widget.movie.year,
+        poster: widget.movie.poster,
+        type: widget.movie.type,
+        genre: data.genre,
+      );
+
+      await context.read<MovieProvider>().addToHistory(movieForHistory);
     }
   }
 
@@ -61,7 +82,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Poster
                           Center(
                             child: _details!.poster.isNotEmpty
                                 ? Image.network(
@@ -73,7 +93,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Titre + année + note
                           Text(
                             '${_details!.title} (${_details!.year})',
                             style: theme.textTheme.titleLarge
@@ -92,7 +111,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Réalisateur, acteurs
                           Text(
                             'Réalisateur : ${_details!.director}',
                             style: theme.textTheme.bodyMedium,
@@ -104,7 +122,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Synopsis
                           Text(
                             'Synopsis',
                             style: theme.textTheme.titleMedium

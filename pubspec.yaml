@@ -36,7 +36,7 @@ dependencies:
   path: ^1.8.3                # Pour les chemins de base de données
   cached_network_image: ^3.3.0 # Pour charger et mettre en cache les posters
   google_fonts: ^6.1.0        # Pour une belle typographie "Netflix style"
-  speech_to_text: ^6.6.0      # Pour le Recherche	vocale
+  speech_to_text: ^7.3.0      # Pour le Recherche	vocale
   flutter_rating_bar: ^4.0.1  # Pour Rating 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -45,6 +45,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
