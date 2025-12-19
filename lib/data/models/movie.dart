@@ -19,9 +19,12 @@ class Movie {
       year: json['Year'] ?? '',
       imdbID: json['imdbID'] ?? '',
       type: json['Type'] ?? '',
+      // si il n'y a pas de poster, la valeur et N/A
       poster: json['Poster'] != 'N/A' 
+          // S'il existe, on affiche Poster
           ? json['Poster'] 
-          : 'https://via.placeholder.com/400x600?text=No+Image',
+          // Sinon on affiche cette image dans cet URL
+          : 'https://dummyimage.com/400x600/cccccc/000000&text=No+Image',
     );
   }
 }
