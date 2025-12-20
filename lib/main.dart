@@ -6,15 +6,15 @@ import 'package:cineflow/ui/views/home_page.dart';
 import 'package:cineflow/core/theme/app_theme.dart';
 import 'package:cineflow/providers/theme_provider.dart';
 
+
 void main() {
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(
-          create: (_) => MovieProvider()..loadHistory(),
-        ),
+        ChangeNotifierProvider(create: (_) => MovieProvider()..loadHistory()),
+
       ],
       child: const CineFlowApp(),
     ),

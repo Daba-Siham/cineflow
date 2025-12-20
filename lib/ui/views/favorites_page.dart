@@ -1,22 +1,56 @@
 import 'package:flutter/material.dart';
 
-class FavoritesPage extends StatelessWidget {
+List<Map<String, dynamic>> favorites = [];
+
+class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
 
   @override
+  State<FavoritesPage> createState() => _FavoritesPageState();
+}
+
+class _FavoritesPageState extends State<FavoritesPage> {
+  @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.favorite_border, size: 80, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            "Vous n'avez pas encore de favoris.",
-            style: TextStyle(color: Colors.grey, fontSize: 16),
-          ),
-        ],
-      ),
+    return Scaffold(
+      appBar: AppBar(title: const Text("Mes Favoris")),
+      body: favorites.isEmpty
+          ? const Center(child: Text("Aucun film favori"))
+          : ListView.builder(
+              itemCount: favorites.length,
+              itemBuilder: (context, index) {
+                final movie = favorites[index];
+
+                return Card(
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  child: ListTile(
+                    leading: Image.network(
+                      movie['poster'],
+                      width: 50,
+                      height: 70,
+                      fit: BoxFit.cover,
+                    ),
+                    title: Text(movie['title']),
+                    subtitle: Text("${movie['year']} • ${movie['type']}"),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        setState(() {
+                          favorites.removeAt(index);
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Film supprimé des favoris "),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }
