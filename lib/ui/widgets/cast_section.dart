@@ -42,6 +42,7 @@ class CastSection extends StatelessWidget {
                     // Pour l’instant, avatar générique (pas de photo dans OMDb pour chaque acteur) [web:13]
                     CircleAvatar(
                       radius: 35,
+                      // ignore: deprecated_member_use
                       backgroundColor: Colors.red.withOpacity(0.7),
                       child: Text(
                         name.isNotEmpty ? name[0] : '?',

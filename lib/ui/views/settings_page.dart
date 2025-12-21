@@ -25,7 +25,7 @@ class SettingsPage extends StatelessWidget {
             title: const Text("Mode Sombre"),
             trailing: Switch(
               value: themeProvider.isDarkMode,
-              activeColor: Colors.red,
+              activeThumbColor: Colors.red,
               onChanged: (value) {
                 themeProvider.toggleTheme();
               },

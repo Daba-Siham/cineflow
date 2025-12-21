@@ -35,8 +35,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
   }
 
   void _refreshFavoriteState() {
-    final exists =
-        favorites.any((movie) => movie['id'] == widget.movie.imdbID);
+    final exists = favorites.any((movie) => movie['id'] == widget.movie.imdbID);
     isFavorite = exists;
   }
 
@@ -81,12 +80,10 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
   void _toggleFavorite() {
     setState(() {
       if (isFavorite) {
-        favorites.removeWhere(
-          (movie) => movie['id'] == widget.movie.imdbID,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Retiré des favoris")),
-        );
+        favorites.removeWhere((movie) => movie['id'] == widget.movie.imdbID);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Retiré des favoris")));
       } else {
         favorites.add({
           'id': widget.movie.imdbID,
@@ -95,9 +92,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
           'year': widget.movie.year,
           'type': widget.movie.type,
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Ajouté aux favoris")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Ajouté aux favoris")));
       }
       isFavorite = !isFavorite;
     });
@@ -183,8 +180,12 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color.fromARGB(255, 229, 191, 188)
-                                  .withOpacity(0.5),
+                              color: const Color.fromARGB(
+                                255,
+                                229,
+                                191,
+                                188,
+                              ).withValues(alpha: 0.5),
                               spreadRadius: 1,
                               blurRadius: 8,
                             ),

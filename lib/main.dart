@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cineflow/providers/movie_provider.dart';
-import 'package:cineflow/providers/favorites_provider.dart';
-import 'package:cineflow/ui/views/home_page.dart';
-import 'package:cineflow/core/theme/app_theme.dart';
-import 'package:cineflow/providers/theme_provider.dart';
 
+import 'providers/favorites_provider.dart';
+import 'providers/theme_provider.dart';
+import 'providers/movie_provider.dart';
+
+import 'ui/views/home_page.dart';
+import 'core/theme/app_theme.dart';
 
 void main() {
   runApp(
@@ -14,7 +15,6 @@ void main() {
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => MovieProvider()..loadHistory()),
-
       ],
       child: const CineFlowApp(),
     ),
@@ -27,12 +27,13 @@ class CineFlowApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+
     return MaterialApp(
       title: 'CineFlow',
       debugShowCheckedModeBanner: false,
-      themeMode: themeProvider.themeMode, 
+      themeMode: themeProvider.themeMode,
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme, 
+      darkTheme: AppTheme.darkTheme,
       home: const HomePage(),
     );
   }

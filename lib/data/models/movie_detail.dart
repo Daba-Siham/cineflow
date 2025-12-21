@@ -27,17 +27,17 @@ class MovieDetail {
 
   factory MovieDetail.fromJson(Map<String, dynamic> json) {
     return MovieDetail(
-      title: json['Title'] ?? '',
-      year: json['Year'] ?? '',
-      rated: json['Rated'] ?? '',
-      released: json['Released'] ?? '',
-      runtime: json['Runtime'] ?? '',
-      genre: json['Genre'] ?? '',
-      director: json['Director'] ?? '',
-      actors: json['Actors'] ?? '',
-      plot: json['Plot'] ?? '',
-      poster: json['Poster'] ?? '',
-      imdbRating: json['imdbRating'] ?? '',
+      title: (json['Title'] ?? '').toString(),
+      year: (json['Year'] ?? '').toString(),
+      rated: (json['Rated'] ?? '').toString(),
+      released: (json['Released'] ?? '').toString(),
+      runtime: (json['Runtime'] ?? '').toString(),
+      genre: (json['Genre'] ?? '').toString(),
+      director: (json['Director'] ?? '').toString(),
+      actors: (json['Actors'] ?? '').toString(),
+      plot: (json['Plot'] ?? '').toString(),
+      poster: (json['Poster'] ?? '').toString(),
+      imdbRating: (json['imdbRating'] ?? '').toString(),
     );
   }
 }

@@ -25,6 +25,7 @@ class MoviePageButtons extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
+                  // ignore: deprecated_member_use
                   color: const Color(0xFF292B37).withOpacity(0.5),
                   spreadRadius: 1,
                   blurRadius: 4,
@@ -44,6 +45,7 @@ class MoviePageButtons extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
+                    // ignore: deprecated_member_use
                     color: const Color(0xFF292B37).withOpacity(0.5),
                     spreadRadius: 1,
                     blurRadius: 4,
@@ -66,6 +68,7 @@ class MoviePageButtons extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
+                  // ignore: deprecated_member_use
                   color: const Color(0xFF292B37).withOpacity(0.5),
                   spreadRadius: 1,
                   blurRadius: 4,
@@ -87,6 +90,7 @@ class MoviePageButtons extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
+                  // ignore: deprecated_member_use
                   color: const Color(0xFF292B37).withOpacity(0.5),
                   spreadRadius: 1,
                   blurRadius: 4,

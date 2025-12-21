@@ -1,11 +1,21 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:cineflow/data/models/movie.dart'; // <-- IMPORTANT
+
+import '../models/movie.dart';
 
 class DatabaseService {
+  static Database? _db;
 
-  static Future<Database> initDB() async {
-    final path = join(await getDatabasesPath(), 'cineflow.db');
+  static Future<Database> get _database async {
+    if (_db != null) return _db!;
+    _db = await _initDb();
+    return _db!;
+  }
+
+  static Future<Database> _initDb() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, "cineflow.db");
+
     return openDatabase(
       path,
       version: 1,
@@ -15,24 +25,10 @@ class DatabaseService {
             id TEXT PRIMARY KEY,
             title TEXT,
             year TEXT,
-            Rated TEXT,
-            released TEXT,
-            runtime TEXT,
-            genre TEXT,
-            director TEXT,
-            writer TEXT,
-            actors TEXT,
-            plot TEXT,
-            language TEXT,
-            country TEXT,
-            awards TEXT,
             poster TEXT,
-            ratings TEXT,
-            metascore TEXT,
-            imdbRating TEXT,
-            imdbVotes TEXT,
             type TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            genre TEXT,
+            imdbRating TEXT
           )
         ''');
       },
@@ -40,26 +36,21 @@ class DatabaseService {
   }
 
   static Future<List<Map<String, dynamic>>> getHistory() async {
-    final db = await initDB();
-    return await db.query(
-      'history',
-      orderBy: 'timestamp DESC',
-    );
+    final db = await _database;
+    return db.query("history", orderBy: "rowid DESC", limit: 10);
   }
 
   static Future<void> insertHistory(Movie movie) async {
-    final db = await initDB();
+    final db = await _database;
     await db.insert(
-      'history',
-      {
-        'id': movie.imdbID,
-        'title': movie.title,
-        'year': movie.year,
-        'genre': movie.genre,
-        'poster': movie.poster,
-        'type': movie.type,
-      },
+      "history",
+      movie.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  static Future<void> clearHistory() async {
+    final db = await _database;
+    await db.delete("history");
   }
 }
