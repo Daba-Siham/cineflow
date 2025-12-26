@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:cineflow/providers/movie_provider.dart';
+import 'package:cineflow/providers/favorites_provider.dart';
 import 'package:cineflow/data/models/movie.dart';
 import 'package:cineflow/data/models/movie_detail.dart';
 import 'package:cineflow/data/services/api_service.dart';
+
+import 'package:cineflow/ui/widgets/movie_page_buttons.dart';
+import 'package:cineflow/ui/widgets/recommendation_section.dart';
+import '../widgets/cast_section.dart';
+import '../widgets/image_detail_section.dart';
 
 class MovieDetailsPage extends StatefulWidget {
   final Movie movie;
@@ -20,10 +27,23 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  bool isFavorite = false;
+
   @override
   void initState() {
     super.initState();
     _loadDetails();
+    // vérifier l'état favori après le premier frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshFavoriteState();
+    });
+  }
+
+  void _refreshFavoriteState() {
+    final favProvider = context.read<FavoritesProvider>();
+    setState(() {
+      isFavorite = favProvider.isFavorite(widget.movie.imdbID);
+    });
   }
 
   Future<void> _loadDetails() async {
@@ -49,92 +69,283 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
       return;
     }
 
-    if (!mounted) return;
+    if (!mounted || data == null) return;
 
-    if (data != null) {
-      final movieForHistory = Movie(
-        imdbID: widget.movie.imdbID,
-        title: widget.movie.title,
-        year: widget.movie.year,
-        poster: widget.movie.poster,
-        type: widget.movie.type,
-        genre: data.genre,
+    // logique d'historique du 2ᵉ fichier
+    final movieForHistory = Movie(
+      imdbID: widget.movie.imdbID,
+      title: widget.movie.title,
+      year: widget.movie.year,
+      poster: widget.movie.poster,
+      type: widget.movie.type,
+      genre: data.genre,
+    );
+
+    await context.read<MovieProvider>().addToHistory(movieForHistory);
+  }
+
+  Future<void> _toggleFavorite() async {
+    final favProvider = context.read<FavoritesProvider>();
+
+    if (isFavorite) {
+      await favProvider.removeFavorite(widget.movie.imdbID);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Retiré des favoris")),
       );
-
-      await context.read<MovieProvider>().addToHistory(movieForHistory);
+    } else {
+      await favProvider.addFavorite({
+        'id': widget.movie.imdbID,
+        'title': widget.movie.title,
+        'poster': widget.movie.poster,
+        'year': widget.movie.year,
+        'type': widget.movie.type,
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ajouté aux favoris")),
+      );
     }
+
+    if (!mounted) return;
+    setState(() {
+      isFavorite = !isFavorite;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // mêmes gardes que le 2ᵉ fichier
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
+    if (_errorMessage != null) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: Center(child: Text(_errorMessage!)),
+      );
+    }
+
+    if (_details == null) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: Center(child: Text('Aucune donnée.')),
+      );
+    }
+
+    // DESIGN du 1er fichier
     return Scaffold(
-      appBar: AppBar(title: Text(widget.movie.title)),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(child: Text(_errorMessage!))
-              : _details == null
-                  ? const Center(child: Text('Aucune donnée.'))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
+      body: Stack(
+        children: [
+          // image de fond
+          Opacity(
+            opacity: 0.4,
+            child: _details!.poster.isNotEmpty
+                ? Image.network(
+                    _details!.poster,
+                    height: 300,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    height: 280,
+                    width: double.infinity,
+                    color: Colors.black,
+                  ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                // barre haute avec bouton retour
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 10,
+                    horizontal: 25,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InkWell(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // poster
+                // poster
+Padding(
+  padding: const EdgeInsets.symmetric(
+    horizontal: 15,
+    vertical: 0,
+  ),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.start,
+    children: [
+      GestureDetector(
+        onTap: () {
+          if (_details!.poster.isEmpty) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  FullscreenImagePage(imageUrl: _details!.poster),
+            ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color.fromARGB(
+                  255,
+                  229,
+                  191,
+                  188,
+                ).withValues(alpha: 0.5),
+                spreadRadius: 1,
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: _details!.poster.isNotEmpty
+                ? Image.network(
+                    _details!.poster,
+                    height: 250,
+                    width: 180,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    height: 250,
+                    width: 180,
+                    color: Colors.grey[800],
+                    child: const Icon(
+                      Icons.movie,
+                      color: Colors.white,
+                      size: 60,
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    ],
+  ),
+),
+
+
+                const SizedBox(height: 20),
+
+                // boutons (par ex. favori, watchlist, etc.)
+                MoviePageButtons(
+                  isFavorite: isFavorite,
+                  onToggleFavorite: _toggleFavorite,
+                ),
+
+                const SizedBox(height: 10),
+
+                // zone scrollable
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 20,
+                        horizontal: 10,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Center(
-                            child: _details!.poster.isNotEmpty
-                                ? Image.network(
-                                    _details!.poster,
-                                    height: 300,
-                                    fit: BoxFit.cover,
-                                  )
-                                : const Icon(Icons.movie, size: 100),
-                          ),
-                          const SizedBox(height: 16),
-
+                          // titre + année
                           Text(
                             '${_details!.title} (${_details!.year})',
-                            style: theme.textTheme.titleLarge
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 10),
+                          // genre • runtime • rated
                           Text(
                             '${_details!.genre} • ${_details!.runtime} • ${_details!.rated}',
-                            style: theme.textTheme.bodyMedium,
+                            style: TextStyle(
+                              color: Colors.grey[300],
+                              fontSize: 14,
+                            ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Note IMDb : ${_details!.imdbRating}',
-                            style: theme.textTheme.bodyMedium
-                                ?.copyWith(color: theme.colorScheme.primary),
+                          const SizedBox(height: 15),
+                          // rating
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _details!.imdbRating,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 15),
 
-                          Text(
-                            'Réalisateur : ${_details!.director}',
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Acteurs : ${_details!.actors}',
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 16),
+                          // cast
+                          CastSection(actors: _details!.actors),
+                          const SizedBox(height: 10),
 
-                          Text(
-                            'Synopsis',
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                          // description / synopsis
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text(
+                              'Description',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             _details!.plot,
-                            style: theme.textTheme.bodyMedium,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                            textAlign: TextAlign.justify,
                           ),
+                          const SizedBox(height: 20),
+
+                          // recommandations
+                          const RecommendationSection(),
                         ],
                       ),
                     ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

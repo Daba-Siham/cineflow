@@ -10,10 +10,9 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => FavoritesProvider()),
+        ChangeNotifierProvider(create: (_) => FavoritesProvider()..loadFavorites(),),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(
-          create: (_) => MovieProvider()..loadHistory(),
+        ChangeNotifierProvider(create: (_) => MovieProvider()..loadHistory(),
         ),
       ],
       child: const CineFlowApp(),

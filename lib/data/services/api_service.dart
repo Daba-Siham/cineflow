@@ -1,56 +1,91 @@
-// Convertir le JSON (texte) reçu de l’API en objet Dart (jsonDecode).
 import 'dart:convert';
-// On va transformer les données JSON en objets Movie.
-import '../models/movie.dart';
-// Permet d’envoyer des requêtes (GET, POST, …)
 import 'package:http/http.dart' as http;
-// Importe la classe ApiConstants Contient l’URL Et la clé API
+
 import '../../core/constants/api_constants.dart';
+import '../models/movie.dart';
 import '../models/movie_detail.dart';
 
-
 class ApiService {
-  // Pour search des Films
+  Future<Map<String, dynamic>> _getJson(Uri uri) async {
+    final res = await http.get(uri);
+    if (res.statusCode != 200) {
+      throw Exception('Erreur réseau: ${res.statusCode}');
+    }
+    final data = jsonDecode(res.body);
+    if (data is Map<String, dynamic>) return data;
+    throw Exception('Réponse invalide');
+  }
+
   Future<List<Movie>> searchMovies(String query, {int page = 1}) async {
+    final q = query.trim().isEmpty ? "star" : query.trim();
     final uri = Uri.parse(
-      '${ApiConstants.omdbBaseUrl}?apikey=${ApiConstants.omdbApiKey}&s=$query&page=$page',
+      '${ApiConstants.omdbBaseUrl}?apikey=${ApiConstants.omdbApiKey}&s=$q&page=$page',
     );
 
-    final response = await http.get(uri);
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-
-      if (data['Response'] == 'True') {
-        final List results = data['Search'];
-        return results.map((e) => Movie.fromJson(e)).toList();
-      } else {
-        return [];
-      }
-    } else {
-      throw Exception('Erreur de connexion à OMDb');
-    }
-  }
-
-  // Pour Détails d'un Film
-  Future<MovieDetail?> getMovieDetail(String imdbId) async {
-  final uri = Uri.parse(
-    '${ApiConstants.omdbBaseUrl}?apikey=${ApiConstants.omdbApiKey}&i=$imdbId&plot=full',
-  );
-
-  final response = await http.get(uri);
-
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
+    final data = await _getJson(uri);
 
     if (data['Response'] == 'True') {
-      return MovieDetail.fromJson(data);
-    } else {
-      return null; // film non trouvé
+      final list = (data['Search'] as List? ?? []);
+      return list.map((e) => Movie.fromJson(e)).toList();
     }
-  } else {
-    throw Exception('Erreur de connexion à OMDb');
+    return [];
   }
-}
 
+  Future<int> getTotalResults(String query) async {
+    final q = query.trim().isEmpty ? "star" : query.trim();
+    final uri = Uri.parse(
+      '${ApiConstants.omdbBaseUrl}?apikey=${ApiConstants.omdbApiKey}&s=$q&page=1',
+    );
+
+    final data = await _getJson(uri);
+    if (data['Response'] == 'True') {
+      return int.tryParse((data['totalResults'] ?? '0').toString()) ?? 0;
+    }
+    return 0;
+  }
+
+  Future<List<Movie>> discoverMovies({
+    required String query,
+    String? type,
+    String? year,
+    int page = 1,
+  }) async {
+    final q = query.trim().isEmpty ? "star" : query.trim();
+    final typeParam = (type == null || type.isEmpty) ? "" : "&type=$type";
+    final yearParam = (year == null || year.isEmpty) ? "" : "&y=$year";
+
+    final uri = Uri.parse(
+      '${ApiConstants.omdbBaseUrl}?apikey=${ApiConstants.omdbApiKey}&s=$q&page=$page$typeParam$yearParam',
+    );
+
+    final data = await _getJson(uri);
+
+    if (data['Response'] == 'True') {
+      final list = (data['Search'] as List? ?? []);
+      return list.map((e) => Movie.fromJson(e)).toList();
+    }
+    return [];
+  }
+
+  Future<MovieDetail?> getMovieDetail(String imdbId) async {
+    final uri = Uri.parse(
+      '${ApiConstants.omdbBaseUrl}?apikey=${ApiConstants.omdbApiKey}&i=$imdbId&plot=full',
+    );
+
+    final data = await _getJson(uri);
+    if (data['Response'] == 'True') {
+      return MovieDetail.fromJson(data);
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>> getMovieDetailsMap(String imdbId) async {
+    final uri = Uri.parse(
+      '${ApiConstants.omdbBaseUrl}?apikey=${ApiConstants.omdbApiKey}&i=$imdbId&plot=short',
+    );
+
+    final data = await _getJson(uri);
+    if (data['Response'] == 'True') return data;
+    return {};
+  }
 }
