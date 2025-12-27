@@ -1,15 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:cineflow/core/storage/prefs.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  // Par défaut, on commence en mode sombre (style Netflix)
+
   ThemeMode _themeMode = ThemeMode.dark;
 
   ThemeMode get themeMode => _themeMode;
-
   bool get isDarkMode => _themeMode == ThemeMode.dark;
 
-  void toggleTheme() {
+  Future<void> init() async {
+    final prefs = await AppPrefs.instance;
+    final isDark = prefs.getBool(AppPrefs.keyIsDarkMode) ?? true; 
+
+    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();
+  }
+
+  Future<void> toggleTheme() async {
     _themeMode = isDarkMode ? ThemeMode.light : ThemeMode.dark;
-    notifyListeners(); // Informe l'app de se reconstruire
+
+    final prefs = await AppPrefs.instance;
+    await prefs.setBool(AppPrefs.keyIsDarkMode, isDarkMode);
+
+    notifyListeners();
   }
 }

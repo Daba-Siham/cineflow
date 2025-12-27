@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cineflow/providers/movie_provider.dart';
+import '../../data/models/movie.dart';
+import '../views/série_page.dart';
 import 'movie_card.dart';
 import 'empty_state.dart';
-import 'package:cineflow/ui/views/history_page.dart';
 
-class HistorySection extends StatelessWidget {
-  const HistorySection({super.key});
+
+class SeriesCatalogSection extends StatelessWidget {
+  const SeriesCatalogSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final movieProvider = context.watch<MovieProvider?>();
-    final history = movieProvider?.history ?? const [];
+    final movieProvider = context.watch<MovieProvider>();
+    final series = List<Movie>.from(movieProvider.catalogSeries);
+    series.shuffle();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -22,15 +25,17 @@ class HistorySection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                "Historique",
+                'Séries',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              if (history.isNotEmpty)
+              if (series.isNotEmpty)
                 InkWell(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const HistoryPage()),
+                      MaterialPageRoute(
+                        builder: (context) => SeriesPage(series: series),
+                      ),
                     );
                   },
                   child: const Icon(Icons.add, color: Colors.red),
@@ -38,19 +43,20 @@ class HistorySection extends StatelessWidget {
             ],
           ),
         ),
-
-        if (history.isEmpty)
+        if (series.isEmpty)
           const SizedBox(
             height: 120,
-            child: EmptyState(message: "Aucun film consulté pour le moment."),
+            child: EmptyState(
+              message: 'Aucune série à afficher pour le moment.',
+            ),
           )
         else
           SizedBox(
             height: 200,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: history.length,
-              itemBuilder: (context, index) => MovieCard(movie: history[index]),
+              itemCount: series.length > 10 ? 10 : series.length,
+              itemBuilder: (context, index) => MovieCard(movie: series[index]),
             ),
           ),
       ],

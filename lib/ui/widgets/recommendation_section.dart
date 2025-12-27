@@ -25,7 +25,10 @@ class RecommendationSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -37,16 +40,12 @@ class RecommendationSection extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const RecommendationsPage()),
+                        MaterialPageRoute(
+                          builder: (_) => const RecommendationsPage(),
+                        ),
                       );
                     },
-                    child: Text(
-                      "Voir plus",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    child: const Icon(Icons.add, color: Colors.red),
                   ),
                 ],
               ),
@@ -55,7 +54,8 @@ class RecommendationSection extends StatelessWidget {
               const SizedBox(
                 height: 120,
                 child: EmptyState(
-                  message: "Consulte au moins un film pour avoir des recommandations.",
+                  message:
+                      "Consulte au moins un film pour avoir des recommandations.",
                 ),
               )
             else
@@ -64,7 +64,8 @@ class RecommendationSection extends StatelessWidget {
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: recos.length,
-                  itemBuilder: (context, index) => MovieCard(movie: recos[index]),
+                  itemBuilder: (context, index) =>
+                      MovieCard(movie: recos[index]),
                 ),
               ),
           ],
