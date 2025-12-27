@@ -11,6 +11,10 @@ import '../widgets/movie_catalog_section.dart';
 import '../widgets/recommendation_section.dart';
 import '../widgets/series_catalog_section.dart';
 import 'package:cineflow/providers/movie_provider.dart';
+import 'package:cineflow/ui/views/login_page.dart';
+import 'package:cineflow/ui/views/register_page.dart';
+import 'package:cineflow/ui/views/profile_page.dart';
+
 
 // ----------------- PAGE ACCUEIL (MAINWELCOME) -----------------
 
@@ -70,6 +74,7 @@ class _HomePageState extends State<HomePage> {
     MainWelcomePage(), // Page Accueil
     SearchPage(),      // Page Recherche
     FavoritesPage(),   // Page Favoris
+    ProfilePage(),     // Page Profil
   ];
 
   @override
@@ -147,6 +152,10 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite),
             label: "Favoris",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profil",
           ),
         ],
       ),

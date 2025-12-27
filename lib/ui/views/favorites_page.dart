@@ -21,18 +21,36 @@ class FavoritesPage extends StatelessWidget {
 
                 return Card(
                   child: ListTile(
-                    leading: Image.network(
-  movie['poster'].replaceAll('_SX300', '_SX600'),
-  fit: BoxFit.cover,
-  loadingBuilder: (context, child, progress) {
-    if (progress == null) return child;
-    return const Center(child: CircularProgressIndicator());
-  },
-),
-
-                    title: Text(movie['title']),
-                    subtitle:
-                        Text("${movie['year']} • ${movie['type']}"),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    leading: SizedBox(
+                      width: 60,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          movie['poster'].replaceAll('_SX300', '_SX600'),
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return const Center(
+                              child: SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stack) =>
+                              const Icon(Icons.movie),
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      movie['title'],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text("${movie['year']} • ${movie['type']}"),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {

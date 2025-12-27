@@ -1,21 +1,19 @@
 import 'package:flutter/foundation.dart';
-
 import 'package:cineflow/data/models/movie.dart';
 import 'package:cineflow/data/services/api_service.dart';
-import 'package:cineflow/data/services/database_service.dart';
-
+import 'package:cineflow/data/services/history_service.dart';
 import '../core/constants/movie_queries.dart';
 
 class MovieProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final HistoryService _historyService = HistoryService();
 
-  // ----------------- HISTORIQUE -----------------
   List<Movie> _history = [];
   List<Movie> get history => _history;
 
   Future<void> loadHistory() async {
     try {
-      final data = await DatabaseService.getHistory();
+      final data = await _historyService.getHistory(1);
       _history = data.map((e) => Movie.fromMap(e)).toList();
     } catch (_) {
       _history = [];
@@ -29,13 +27,21 @@ class MovieProvider extends ChangeNotifier {
     if (_history.length > 10) {
       _history.removeLast();
     }
+
     try {
-      await DatabaseService.insertHistory(movie);
+      await _historyService.addHistory(1, {
+        'imdbID': movie.imdbID,
+        'title': movie.title,
+        'year': movie.year,
+        'poster': movie.poster,
+        'type': movie.type,
+        'genre': movie.genre,
+      });
     } catch (_) {}
+
     notifyListeners();
   }
 
-  // ----------------- RECHERCHE -----------------
   List<Movie> _results = [];
   List<Movie> get results => _results;
 
@@ -76,21 +82,24 @@ class MovieProvider extends ChangeNotifier {
       final movies =
           await _apiService.searchMovies(_lastQuery, page: _currentPage);
       _results = movies;
+
       if (movies.isEmpty) {
         _errorMessage = 'Aucun film trouvé.';
         _hasMore = false;
       } else if (movies.length < 10) {
         _hasMore = false;
       }
-    } catch (_) {
+    } catch (e) {
+      print('MovieProvider.search ERROR: $e');
       _results = [];
-      _errorMessage = 'Erreur lors de la recherche.';
+      _errorMessage = e.toString(); // ⭐ affiche "Invalid API key" ou autre
       _hasMore = false;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
+
 
   Future<void> loadMore() async {
     if (!_hasMore || _isLoading || _lastQuery.isEmpty) return;
@@ -118,8 +127,6 @@ class MovieProvider extends ChangeNotifier {
     }
   }
 
-  // ----------------- CATALOGUE HOME (NOUVEAU) -----------------
-
   List<Movie> _catalog = [];
   List<Movie> get catalog => _catalog;
 
@@ -144,7 +151,7 @@ class MovieProvider extends ChangeNotifier {
       for (final q in kCatalogQueries) {
         final results = await _apiService.searchMovies(q);
         for (final m in results) {
-          tmp[m.imdbID] = m; // évite les doublons
+          tmp[m.imdbID] = m;
         }
       }
 
@@ -157,7 +164,6 @@ class MovieProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Top films pour le carousel
   Future<List<Movie>> getTopRatedFromCatalog({int limit = 5}) async {
     if (catalog.isEmpty) {
       await loadCatalog();

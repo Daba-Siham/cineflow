@@ -7,10 +7,15 @@ import '../models/movie_detail.dart';
 
 class ApiService {
   Future<Map<String, dynamic>> _getJson(Uri uri) async {
+    print('➡️ OMDb CALL: $uri');
     final res = await http.get(uri);
+    print('⬅️ STATUS: ${res.statusCode}');
+    print('⬅️ BODY: ${res.body}');
+
     if (res.statusCode != 200) {
       throw Exception('Erreur réseau: ${res.statusCode}');
     }
+
     final data = jsonDecode(res.body);
     if (data is Map<String, dynamic>) return data;
     throw Exception('Réponse invalide');
@@ -24,11 +29,14 @@ class ApiService {
 
     final data = await _getJson(uri);
 
-    if (data['Response'] == 'True') {
-      final list = (data['Search'] as List? ?? []);
-      return list.map((e) => Movie.fromJson(e)).toList();
+    // ⚠️ SI OMDb RENVOIE UNE ERREUR, ON LA REMONTE
+    if (data['Response'] == 'False') {
+      final err = data['Error'] ?? 'Erreur OMDb inconnue';
+      throw Exception(err);
     }
-    return [];
+
+    final list = (data['Search'] as List? ?? []);
+    return list.map((e) => Movie.fromJson(e)).toList();
   }
 
   Future<int> getTotalResults(String query) async {
@@ -38,10 +46,11 @@ class ApiService {
     );
 
     final data = await _getJson(uri);
-    if (data['Response'] == 'True') {
-      return int.tryParse((data['totalResults'] ?? '0').toString()) ?? 0;
+    if (data['Response'] == 'False') {
+      return 0;
     }
-    return 0;
+
+    return int.tryParse((data['totalResults'] ?? '0').toString()) ?? 0;
   }
 
   Future<List<Movie>> discoverMovies({
@@ -60,11 +69,13 @@ class ApiService {
 
     final data = await _getJson(uri);
 
-    if (data['Response'] == 'True') {
-      final list = (data['Search'] as List? ?? []);
-      return list.map((e) => Movie.fromJson(e)).toList();
+    if (data['Response'] == 'False') {
+      final err = data['Error'] ?? 'Erreur OMDb inconnue';
+      throw Exception(err);
     }
-    return [];
+
+    final list = (data['Search'] as List? ?? []);
+    return list.map((e) => Movie.fromJson(e)).toList();
   }
 
   Future<MovieDetail?> getMovieDetail(String imdbId) async {
@@ -73,10 +84,11 @@ class ApiService {
     );
 
     final data = await _getJson(uri);
-    if (data['Response'] == 'True') {
-      return MovieDetail.fromJson(data);
+    if (data['Response'] == 'False') {
+      final err = data['Error'] ?? 'Erreur OMDb inconnue';
+      throw Exception(err);
     }
-    return null;
+    return MovieDetail.fromJson(data);
   }
 
   Future<Map<String, dynamic>> getMovieDetailsMap(String imdbId) async {
@@ -85,7 +97,10 @@ class ApiService {
     );
 
     final data = await _getJson(uri);
-    if (data['Response'] == 'True') return data;
-    return {};
+    if (data['Response'] == 'False') {
+      final err = data['Error'] ?? 'Erreur OMDb inconnue';
+      throw Exception(err);
+    }
+    return data;
   }
 }

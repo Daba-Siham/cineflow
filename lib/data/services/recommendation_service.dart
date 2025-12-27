@@ -1,12 +1,13 @@
 import 'package:cineflow/data/models/movie.dart';
 import 'package:cineflow/data/services/api_service.dart';
-import 'package:cineflow/data/services/database_service.dart';
+import 'package:cineflow/data/services/history_service.dart';
 
 class RecommendationService {
   final ApiService _apiService = ApiService();
+  final HistoryService _historyService = HistoryService();
 
   Future<List<Movie>> getRecommendations() async {
-    final history = await DatabaseService.getHistory();
+    final history = await _historyService.getHistory(1);
     if (history.isEmpty) return [];
 
     final Map<String, int> genreCount = {};
@@ -36,8 +37,11 @@ class RecommendationService {
 
     final recos = await _apiService.searchMovies(topGenre);
 
-    final historyIds = history.map((e) => (e['imdbID'] ?? '').toString()).toSet();
-    final filtered = recos.where((m) => !historyIds.contains(m.imdbID)).toList();
+    final historyIds =
+        history.map((e) => (e['imdbID'] ?? '').toString()).toSet();
+
+    final filtered =
+        recos.where((m) => !historyIds.contains(m.imdbID)).toList();
 
     return filtered;
   }

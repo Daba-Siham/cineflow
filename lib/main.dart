@@ -5,6 +5,8 @@ import 'package:cineflow/providers/favorites_provider.dart';
 import 'package:cineflow/ui/views/home_page.dart';
 import 'package:cineflow/core/theme/app_theme.dart';
 import 'package:cineflow/providers/theme_provider.dart';
+import 'package:cineflow/providers/auth_provider.dart';
+
 
 void main() {
   runApp(
@@ -12,8 +14,8 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => FavoritesProvider()..loadFavorites(),),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => MovieProvider()..loadHistory(),
-        ),
+        ChangeNotifierProvider(create: (_) => MovieProvider()..loadHistory()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: const CineFlowApp(),
     ),

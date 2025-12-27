@@ -1,4 +1,7 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.cineflow">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- 🔴 Ajoute la permission micro ici -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <application
