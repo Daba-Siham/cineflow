@@ -2,8 +2,8 @@ class Movie {
   final String title;
   final String year;
   final String genre;
-  final String imdbID;
-  final String type;
+  final String imdbID; // id TMDb
+  final String type;   // 'movie' ou 'series'
   final String poster;
 
   Movie({
@@ -26,18 +26,27 @@ class Movie {
     );
   }
 
-  factory Movie.fromJson(Map<String, dynamic> json) {
+  // isTv = true => JSON venant de /search/tv
+  factory Movie.fromJson(
+    Map<String, dynamic> json, {
+    bool isTv = false,
+  }) {
+    final String date =
+        isTv ? (json['first_air_date'] ?? '') : (json['release_date'] ?? '');
+    final String year = date.isNotEmpty ? date.substring(0, 4) : '';
+
+    final String title = isTv
+        ? (json['name'] ?? json['original_name'] ?? '')
+        : (json['title'] ?? '');
+
     return Movie(
-      title: json['Title'] ?? '',
-      year: json['Year'] ?? '',
-      genre: json['Genre'] ?? '',
-      imdbID: json['imdbID'] ?? '',
-      type: json['Type'] ?? '',
-      // si il n'y a pas de poster, la valeur et N/A
-      poster: json['Poster'] != 'N/A' 
-          // S'il existe, on affiche Poster
-          ? json['Poster'] 
-          // Sinon on affiche cette image dans cet URL
+      title: title,
+      year: year,
+      genre: '',
+      imdbID: json['id']?.toString() ?? '',
+      type: isTv ? 'series' : 'movie',
+      poster: json['poster_path'] != null
+          ? 'https://image.tmdb.org/t/p/w500${json['poster_path']}'
           : 'https://dummyimage.com/400x600/cccccc/000000&text=No+Image',
     );
   }

@@ -2,8 +2,10 @@
 // Création de la classe ApiConstants qui regroupe les constantes liées à L'API
 class ApiConstants {
   // Clé qui autorise à l'application d'accéder aux données OMDb.
-  static const String omdbApiKey = '740fe94';
+  static const String tmdbApiKey = '429cf8b94db5e957744a8c9c00f6b1de';
 
   // URL de base de l’API OMDb
-  static const String omdbBaseUrl = 'https://www.omdbapi.com/';
+  static const String tmdbBaseUrl = 'https://api.themoviedb.org/3';
+
+  static const String tmdbImageBaseUrl = 'https://image.tmdb.org/t/p/w500';
 }
