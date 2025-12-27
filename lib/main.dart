@@ -1,25 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'providers/movie_provider.dart';
-import 'providers/favorites_provider.dart';
-import 'providers/theme_provider.dart';
-import 'ui/views/home_page.dart';
-import 'ui/views/splash_page.dart';
+import 'package:cineflow/providers/auth_provider.dart';
+import 'package:cineflow/providers/theme_provider.dart';
+import 'package:cineflow/providers/movie_provider.dart';
+import 'package:cineflow/providers/favorites_provider.dart';
 
-void main() {
+import 'package:cineflow/ui/views/home_page.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final authProvider = AuthProvider();
+  await authProvider.init();
+
+  final themeProvider = ThemeProvider();
+  await themeProvider.init();
   runApp(
     MultiProvider(
       providers: [
-        // ⚠️ ICI : on lance loadCatalog au démarrage
-        ChangeNotifierProvider(
-          create: (_) => MovieProvider()..loadCatalog(),
+        ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
+        ChangeNotifierProvider<ThemeProvider>.value(value: themeProvider),
+
+        ChangeNotifierProvider<MovieProvider>(
+          create: (_) => MovieProvider(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => FavoritesProvider()..loadFavorites(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ThemeProvider(),
+        ChangeNotifierProvider<FavoritesProvider>(
+          create: (_) => FavoritesProvider(),
         ),
       ],
       child: const MyApp(),
@@ -36,12 +43,11 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'CineFlow',
-      themeMode: themeProvider.themeMode,
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
-      home: const CineFlowSplashPage(),
-      routes: {'/home': (_) => const HomePage()},
+      themeMode: themeProvider.themeMode,
+      home: const HomePage(), 
     );
   }
 }
+

@@ -22,13 +22,13 @@ class FavoritesPage extends StatelessWidget {
                 return Card(
                   child: ListTile(
                     leading: Image.network(
-  movie['poster'].replaceAll('_SX300', '_SX600'),
-  fit: BoxFit.cover,
-  loadingBuilder: (context, child, progress) {
-    if (progress == null) return child;
-    return const Center(child: CircularProgressIndicator());
-  },
-),
+                      movie['poster'].replaceAll('_SX300', '_SX600'),
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
 
                     title: Text(movie['title']),
                     subtitle:

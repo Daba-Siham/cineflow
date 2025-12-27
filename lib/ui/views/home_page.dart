@@ -11,6 +11,7 @@ import '../widgets/movie_catalog_section.dart';
 import '../widgets/recommendation_section.dart';
 import '../widgets/series_catalog_section.dart';
 import 'package:cineflow/providers/movie_provider.dart';
+import 'package:cineflow/ui/views/profile_page.dart';
 
 // ----------------- PAGE ACCUEIL (MAINWELCOME) -----------------
 
@@ -57,24 +58,34 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
 // ----------------- HOME PAGE (NAVIGATION) -----------------
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final int initialIndex;
+  const HomePage({super.key,
+  this.initialIndex = 0,});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int index = 0;
+  late int index;
+
+  @override
+  void initState() {
+    super.initState();
+    index = widget.initialIndex; 
+  }
+
 
   final List<Widget> pages = const [
-    MainWelcomePage(), // Page Accueil
-    SearchPage(),      // Page Recherche
-    FavoritesPage(),   // Page Favoris
+    MainWelcomePage(), 
+    SearchPage(),      
+    FavoritesPage(),  
+    ProfilePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    // Vérifier si on est en mode sombre ou clair pour le logo
+    final safeIndex = index.clamp(0, pages.length - 1);
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     String logoPath =
         isDarkMode ? 'assets/logo_sombre.png' : 'assets/logo_claire.png';
@@ -99,7 +110,6 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
-          // Bouton thème
           IconButton(
             icon: Icon(
               Theme.of(context).brightness == Brightness.dark
@@ -111,7 +121,6 @@ class _HomePageState extends State<HomePage> {
                   .toggleTheme();
             },
           ),
-          // Bouton paramètres
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -124,11 +133,11 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: pages[index],
+      body: pages[safeIndex],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: index,
+        currentIndex: safeIndex,
         onTap: (i) {
-          if (index == 1 && i != 1) {
+          if (safeIndex == 1 && i != 1) {
             context.read<MovieProvider>().clearSearch();
           }
           setState(() => index = i);
@@ -148,6 +157,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.favorite),
             label: "Favoris",
           ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
         ],
       ),
     );
