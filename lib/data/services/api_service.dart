@@ -1,149 +1,73 @@
+// lib/data/services/api_service.dart
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-
-import '../../core/constants/api_constants.dart';
-import '../models/cast_member.dart';
 import '../models/movie.dart';
+import 'package:http/http.dart' as http;
+import '../../core/constants/api_constants.dart';
 import '../models/movie_detail.dart';
 
 class ApiService {
-  Future<Map<String, dynamic>> _getJson(Uri uri) async {
-    final res = await http.get(uri);
-    if (res.statusCode != 200) {
-      throw Exception('Erreur réseau: ${res.statusCode}');
-    }
-    final data = jsonDecode(res.body);
-    if (data is Map<String, dynamic>) return data;
-    throw Exception('Réponse invalide');
-  }
-
-  // ---------- RECHERCHE ----------
-
+  // Pour search des Films
   Future<List<Movie>> searchMovies(String query, {int page = 1}) async {
-    final q = query.trim().isEmpty ? 'star' : query.trim();
-
     final uri = Uri.parse(
-      '${ApiConstants.tmdbBaseUrl}/search/movie'
-      '?api_key=${ApiConstants.tmdbApiKey}'
-      '&query=$q'
-      '&page=$page'
-      '&language=fr-FR',
+      '${ApiConstants.tmdbBaseUrl}?apikey=${ApiConstants.tmdbApiKey}&s=$query&page=$page&type=movie',
     );
 
-    final data = await _getJson(uri);
-    final list = (data['results'] as List? ?? []);
-    return list.map((e) => Movie.fromJson(e, isTv: false)).toList();
-  }
+    final response = await http.get(uri);
 
-  Future<List<Movie>> searchSeries(String query, {int page = 1}) async {
-    final q = query.trim().isEmpty ? 'star' : query.trim();
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
 
-    final uri = Uri.parse(
-      '${ApiConstants.tmdbBaseUrl}/search/tv'
-      '?api_key=${ApiConstants.tmdbApiKey}'
-      '&query=$q'
-      '&page=$page'
-      '&language=fr-FR',
-    );
-
-    final data = await _getJson(uri);
-    final list = (data['results'] as List? ?? []);
-    return list.map((e) => Movie.fromJson(e, isTv: true)).toList();
-  }
-
-  // RECHERCHE MIXTE (films + séries)
-  Future<List<Movie>> searchMulti(String query, {int page = 1}) async {
-    final q = query.trim().isEmpty ? 'star' : query.trim();
-
-    final uri = Uri.parse(
-      '${ApiConstants.tmdbBaseUrl}/search/multi'
-      '?api_key=${ApiConstants.tmdbApiKey}'
-      '&query=$q'
-      '&page=$page'
-      '&language=fr-FR',
-    );
-
-    final data = await _getJson(uri);
-    final list = (data['results'] as List? ?? []);
-
-    final List<Movie> results = [];
-
-    for (final raw in list) {
-      final mediaType = raw['media_type'];
-
-      if (mediaType == 'movie') {
-        results.add(Movie.fromJson(raw, isTv: false));
-      } else if (mediaType == 'tv') {
-        results.add(Movie.fromJson(raw, isTv: true));
+      if (data['Response'] == 'True') {
+        final List results = data['Search'];
+        return results.map((e) => Movie.fromJson(e)).toList();
       } else {
-        // on ignore 'person' et autres
-        continue;
+        return [];
       }
+    } else {
+      throw Exception('Erreur de connexion à OMDb');
     }
-
-    return results;
   }
 
-  // ---------- DETAIL FILM ----------
-
-  Future<MovieDetail?> getMovieDetail(String tmdbId) async {
+  // ✅ AJOUT : Pour search des Séries
+  Future<List<Movie>> searchSeries(String query, {int page = 1}) async {
     final uri = Uri.parse(
-      '${ApiConstants.tmdbBaseUrl}/movie/$tmdbId'
-      '?api_key=${ApiConstants.tmdbApiKey}'
-      '&language=fr-FR',
+      '${ApiConstants.tmdbBaseUrl}?apikey=${ApiConstants.tmdbApiKey}&s=$query&page=$page&type=series',
     );
 
-    final data = await _getJson(uri);
-    if (data.isEmpty || data['id'] == null) return null;
-    return MovieDetail.fromMovieJson(data);
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data['Response'] == 'True') {
+        final List results = data['Search'];
+        return results.map((e) => Movie.fromJson(e)).toList();
+      } else {
+        return [];
+      }
+    } else {
+      throw Exception('Erreur de connexion à OMDb');
+    }
   }
 
-  Future<MovieDetail?> getTvDetail(String tmdbId) async {
+  // Pour Détails d'un Film
+  Future<MovieDetail?> getMovieDetail(String imdbId) async {
     final uri = Uri.parse(
-      '${ApiConstants.tmdbBaseUrl}/tv/$tmdbId'
-      '?api_key=${ApiConstants.tmdbApiKey}'
-      '&language=fr-FR',
+      '${ApiConstants.tmdbBaseUrl}?apikey=${ApiConstants.tmdbApiKey}&i=$imdbId&plot=full',
     );
 
-    final data = await _getJson(uri);
-    if (data.isEmpty || data['id'] == null) return null;
-    return MovieDetail.fromTvJson(data);
-  }
+    final response = await http.get(uri);
 
-  Future<List<String>> getCastNames(String tmdbId, {required bool isTv}) async {
-    final uri = Uri.parse(
-      '${ApiConstants.tmdbBaseUrl}/${isTv ? 'tv' : 'movie'}/$tmdbId/credits'
-      '?api_key=${ApiConstants.tmdbApiKey}'
-      '&language=fr-FR',
-    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
 
-    final data = await _getJson(uri);
-    final List cast = data['cast'] as List? ?? [];
-
-    return cast
-        .take(10)
-        .map((e) => e['name'] as String? ?? '')
-        .where((name) => name.isNotEmpty)
-        .toList();
-  }
-
-  Future<List<CastMember>> getCast(
-    String tmdbId, {
-    required bool isTv,
-  }) async {
-    final uri = Uri.parse(
-      '${ApiConstants.tmdbBaseUrl}/${isTv ? 'tv' : 'movie'}/$tmdbId/credits'
-      '?api_key=${ApiConstants.tmdbApiKey}'
-      '&language=fr-FR',
-    );
-
-    final data = await _getJson(uri);
-    final List castJson = data['cast'] as List? ?? [];
-
-    return castJson
-        .take(10)
-        .map((e) => CastMember.fromJson(e))
-        .where((c) => c.name.isNotEmpty)
-        .toList();
+      if (data['Response'] == 'True') {
+        return MovieDetail.fromJson(data);
+      } else {
+        return null; // film non trouvé
+      }
+    } else {
+      throw Exception('Erreur de connexion à OMDb');
+    }
   }
 }

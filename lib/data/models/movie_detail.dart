@@ -35,6 +35,54 @@ class MovieDetail {
       'Integer a nisl vel dui finibus aliquet. '
       'Sed eget dolor ut orci dictum placerat.';
 
+  // ============================================================
+  // ✅ AJOUT IMPORTANT : compatibilité avec api_service.dart
+  // ============================================================
+  factory MovieDetail.fromJson(Map<String, dynamic> json) {
+    // 1) Cas OMDb (réponse contient "Response")
+    if (json.containsKey('Response')) {
+      final String title = (json['Title'] ?? '').toString();
+      final String year = (json['Year'] ?? '').toString();
+      final String released = (json['Released'] ?? '').toString();
+      final String runtime = (json['Runtime'] ?? '').toString();
+      final String genre = (json['Genre'] ?? '').toString();
+      final String director = (json['Director'] ?? '').toString();
+      final String actors = (json['Actors'] ?? '').toString();
+      final String plot = ((json['Plot'] ?? '').toString().trim());
+      final String poster = (json['Poster'] ?? '').toString();
+      final String rated = (json['Rated'] ?? '').toString();
+      final String imdbRating = (json['imdbRating'] ?? '').toString();
+      final String type = (json['Type'] ?? '').toString(); // movie / series
+
+      return MovieDetail(
+        title: title,
+        year: year,
+        rated: rated,
+        released: released,
+        runtime: runtime,
+        genre: genre,
+        director: director,
+        actors: actors,
+        plot: plot.isNotEmpty ? plot : kDefaultPlot,
+        poster: poster.isNotEmpty
+            ? poster
+            : 'https://dummyimage.com/400x600/cccccc/000000&text=No+Image',
+        imdbRating: imdbRating,
+        type: type.isNotEmpty ? type : 'movie',
+      );
+    }
+
+    // 2) Cas TMDb TV (présence de first_air_date OU name)
+    final bool isTv = json.containsKey('first_air_date') || json.containsKey('name');
+    if (isTv) return MovieDetail.fromTvJson(json);
+
+    // 3) Sinon TMDb Movie
+    return MovieDetail.fromMovieJson(json);
+  }
+
+  // =======================
+  // ✅ TES CODES (inchangés)
+  // =======================
   factory MovieDetail.fromMovieJson(Map<String, dynamic> json) {
     final genres = (json['genres'] as List<dynamic>?)
             ?.map((g) => g['name'] as String?)
@@ -43,8 +91,7 @@ class MovieDetail {
         [];
 
     final String releaseDate = json['release_date'] ?? '';
-    final String year =
-        releaseDate.isNotEmpty ? releaseDate.substring(0, 4) : '';
+    final String year = releaseDate.isNotEmpty ? releaseDate.substring(0, 4) : '';
 
     final String overview = (json['overview'] as String? ?? '').trim();
 
@@ -61,9 +108,7 @@ class MovieDetail {
       poster: json['poster_path'] != null
           ? '${ApiConstants.tmdbImageBaseUrl}${json['poster_path']}'
           : 'https://dummyimage.com/400x600/cccccc/000000&text=No+Image',
-      imdbRating: json['vote_average'] != null
-          ? json['vote_average'].toString()
-          : '',
+      imdbRating: json['vote_average'] != null ? json['vote_average'].toString() : '',
       type: 'movie',
     );
   }
@@ -101,9 +146,7 @@ class MovieDetail {
       poster: json['poster_path'] != null
           ? '${ApiConstants.tmdbImageBaseUrl}${json['poster_path']}'
           : 'https://dummyimage.com/400x600/cccccc/000000&text=No+Image',
-      imdbRating: json['vote_average'] != null
-          ? json['vote_average'].toString()
-          : '',
+      imdbRating: json['vote_average'] != null ? json['vote_average'].toString() : '',
       type: 'series',
     );
   }

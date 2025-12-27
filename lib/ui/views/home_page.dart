@@ -11,6 +11,7 @@ import '../widgets/movie_catalog_section.dart';
 import '../widgets/recommendation_section.dart';
 import '../widgets/series_catalog_section.dart';
 import 'package:cineflow/providers/movie_provider.dart';
+import 'package:cineflow/ui/views/filtrage_page.dart';
 
 // ----------------- PAGE ACCUEIL (MAINWELCOME) -----------------
 
@@ -119,6 +120,16 @@ class _HomePageState extends State<HomePage> {
                 context,
                 MaterialPageRoute(
                     builder: (context) => const SettingsPage()),
+              );
+            },
+          ),
+            IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: "Filtrer",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FiltragePage()),
               );
             },
           ),
