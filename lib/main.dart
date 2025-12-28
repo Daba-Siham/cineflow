@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'providers/movie_provider.dart';
 import 'providers/favorites_provider.dart';
+import 'providers/search_history_provider.dart';
 import 'providers/theme_provider.dart';
 import 'ui/views/home_page.dart';
 import 'ui/views/splash_page.dart';
@@ -11,7 +12,6 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        // ⚠️ ICI : on lance loadCatalog au démarrage
         ChangeNotifierProvider(
           create: (_) => MovieProvider()..loadCatalog(),
         ),
@@ -21,6 +21,7 @@ void main() {
         ChangeNotifierProvider(
           create: (_) => ThemeProvider(),
         ),
+        ChangeNotifierProvider(create: (_) => SearchHistoryProvider()),
       ],
       child: const MyApp(),
     ),

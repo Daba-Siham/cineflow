@@ -5,6 +5,7 @@ import '../../core/constants/api_constants.dart';
 import '../models/cast_member.dart';
 import '../models/movie.dart';
 import '../models/movie_detail.dart';
+import '../models/review.dart';
 
 class ApiService {
   Future<Map<String, dynamic>> _getJson(Uri uri) async {
@@ -17,41 +18,13 @@ class ApiService {
     throw Exception('Réponse invalide');
   }
 
-  // ---------- RECHERCHE ----------
+  // -------- SEARCH (TMDb) --------
 
-  Future<List<Movie>> searchMovies(String query, {int page = 1}) async {
-    final q = query.trim().isEmpty ? 'star' : query.trim();
-
-    final uri = Uri.parse(
-      '${ApiConstants.tmdbBaseUrl}/search/movie'
-      '?api_key=${ApiConstants.tmdbApiKey}'
-      '&query=$q'
-      '&page=$page'
-      '&language=fr-FR',
-    );
-
-    final data = await _getJson(uri);
-    final list = (data['results'] as List? ?? []);
-    return list.map((e) => Movie.fromJson(e, isTv: false)).toList();
+  // Compatibilité: ancien code qui appelait searchMovies
+  Future<List<Movie>> searchMovies(String query, {int page = 1}) {
+    return searchMulti(query, page: page);
   }
 
-  Future<List<Movie>> searchSeries(String query, {int page = 1}) async {
-    final q = query.trim().isEmpty ? 'star' : query.trim();
-
-    final uri = Uri.parse(
-      '${ApiConstants.tmdbBaseUrl}/search/tv'
-      '?api_key=${ApiConstants.tmdbApiKey}'
-      '&query=$q'
-      '&page=$page'
-      '&language=fr-FR',
-    );
-
-    final data = await _getJson(uri);
-    final list = (data['results'] as List? ?? []);
-    return list.map((e) => Movie.fromJson(e, isTv: true)).toList();
-  }
-
-  // RECHERCHE MIXTE (films + séries)
   Future<List<Movie>> searchMulti(String query, {int page = 1}) async {
     final q = query.trim().isEmpty ? 'star' : query.trim();
 
@@ -75,16 +48,13 @@ class ApiService {
         results.add(Movie.fromJson(raw, isTv: false));
       } else if (mediaType == 'tv') {
         results.add(Movie.fromJson(raw, isTv: true));
-      } else {
-        // on ignore 'person' et autres
-        continue;
       }
     }
 
     return results;
   }
 
-  // ---------- DETAIL FILM ----------
+  // -------- DETAILS (TMDb) --------
 
   Future<MovieDetail?> getMovieDetail(String tmdbId) async {
     final uri = Uri.parse(
@@ -110,6 +80,8 @@ class ApiService {
     return MovieDetail.fromTvJson(data);
   }
 
+  // -------- CAST (TMDb) --------
+
   Future<List<String>> getCastNames(String tmdbId, {required bool isTv}) async {
     final uri = Uri.parse(
       '${ApiConstants.tmdbBaseUrl}/${isTv ? 'tv' : 'movie'}/$tmdbId/credits'
@@ -127,10 +99,7 @@ class ApiService {
         .toList();
   }
 
-  Future<List<CastMember>> getCast(
-    String tmdbId, {
-    required bool isTv,
-  }) async {
+  Future<List<CastMember>> getCast(String tmdbId, {required bool isTv}) async {
     final uri = Uri.parse(
       '${ApiConstants.tmdbBaseUrl}/${isTv ? 'tv' : 'movie'}/$tmdbId/credits'
       '?api_key=${ApiConstants.tmdbApiKey}'
@@ -145,5 +114,19 @@ class ApiService {
         .map((e) => CastMember.fromJson(e))
         .where((c) => c.name.isNotEmpty)
         .toList();
+  }
+
+  // -------- REVIEWS (TMDb) --------
+
+  Future<List<Review>> getReviews(String tmdbId, {required bool isTv}) async {
+    final uri = Uri.parse(
+      '${ApiConstants.tmdbBaseUrl}/${isTv ? 'tv' : 'movie'}/$tmdbId/reviews'
+      '?api_key=${ApiConstants.tmdbApiKey}'
+      '&language=en-US',
+    );
+
+    final data = await _getJson(uri);
+    final List results = data['results'] as List? ?? [];
+    return results.map((e) => Review.fromJson(e)).toList();
   }
 }

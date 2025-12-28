@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cineflow/providers/movie_provider.dart';
 
 class CineFlowSplashPage extends StatefulWidget {
   const CineFlowSplashPage({super.key});
@@ -18,7 +20,6 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
   late Animation<Offset> _textOffset;
   late Animation<double> _textOpacity;
 
-  // pour l'effet lettre par lettre
   final String _title = 'CineFlow';
 
   @override
@@ -44,7 +45,7 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
     // 0.7 -> 1.0 : logo glisse du centre vers la gauche
     _logoAlignment = AlignmentTween(
       begin: Alignment.center,
-      end: const Alignment(-0.5, 0.0), // un peu plus à gauche
+      end: const Alignment(-0.5, 0.0),
     ).animate(
       CurvedAnimation(
         parent: _controller,
@@ -54,7 +55,7 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
 
     // Texte qui apparaît à droite après le déplacement du logo
     _textOffset = Tween<Offset>(
-      begin: const Offset(0.4, 0.0), // léger slide depuis la droite
+      begin: const Offset(0.4, 0.0),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -68,7 +69,13 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
       curve: const Interval(0.7, 1.0, curve: Curves.easeIn),
     );
 
+    // Lancer l’animation
     _controller.forward();
+
+    // Lancer le chargement API (catalogue) pendant le splash
+    Future.microtask(() async {
+      await Provider.of<MovieProvider>(context, listen: false).loadCatalog();
+    });
 
     // Aller vers Home une fois l'animation terminée
     _controller.addStatusListener((status) {
@@ -84,12 +91,12 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
     super.dispose();
   }
 
-  // construit le texte "CineFlow" lettre par lettre
+  // Texte "CineFlow" lettre par lettre
   Widget _buildTypewriterText() {
     final animationValue = _controller.value;
 
     if (animationValue <= 0.7) {
-      return const SizedBox.shrink(); // rien avant la phase texte
+      return const SizedBox.shrink();
     }
 
     final t = ((animationValue - 0.7) / 0.3).clamp(0.0, 1.0);
@@ -123,7 +130,6 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Logo (aligné horizontalement, mais déplacé par AlignmentTween)
                 Align(
                   alignment: _logoAlignment.value,
                   child: FadeTransition(
@@ -137,16 +143,12 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 4),
-
-                // Texte CineFlow à côté du logo
                 FadeTransition(
                   opacity: _textOpacity,
                   child: SlideTransition(
                     position: _textOffset,
                     child: Transform.translate(
-                      // ajuste ici pour monter/descendre ou décaler le texte
                       offset: const Offset(-10, 17),
                       child: _buildTypewriterText(),
                     ),

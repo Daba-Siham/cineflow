@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class MoviePageButtons extends StatelessWidget {
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
+  final VoidCallback onShare;
 
   const MoviePageButtons({
     super.key,
     required this.isFavorite,
     required this.onToggleFavorite,
+    required this.onShare,
   });
 
   @override
@@ -65,24 +67,27 @@ class MoviePageButtons extends StatelessWidget {
           ),
 
           // SHARE
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF292B37),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  // ignore: deprecated_member_use
-                  color: const Color(0xFF292B37).withOpacity(0.5),
-                  spreadRadius: 1,
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.share,
-              color: Colors.white,
-              size: 35,
+          InkWell(
+            onTap : onShare,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF292B37),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    // ignore: deprecated_member_use
+                    color: const Color(0xFF292B37).withOpacity(0.5),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.share,
+                color: Colors.white,
+                size: 35,
+              ),
             ),
           ),
         ],

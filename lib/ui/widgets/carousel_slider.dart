@@ -23,8 +23,7 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
   @override
   void initState() {
     super.initState();
-    futureTop =
-        context.read<MovieProvider>().getTopRatedFromCatalog(limit: 5);
+    futureTop = context.read<MovieProvider>().getTopRatedFromCatalog(limit: 5);
   }
 
   @override
@@ -141,8 +140,9 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                             onTap: () async {
                               final favProvider =
                                   context.read<FavoritesProvider>();
-                              final alreadyFav =
-                                  favProvider.isFavorite(currentMovie.imdbID);
+
+                              final alreadyFav = favProvider
+                                  .isFavorite(currentMovie.imdbID);
 
                               if (alreadyFav) {
                                 await favProvider

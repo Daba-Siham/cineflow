@@ -43,11 +43,21 @@ dependencies:
   cupertino_icons: ^1.0.8
   carousel_slider: ^5.1.1   
   awesome_snackbar_content: ^0.1.8
+  share_plus: ^12.0.1
+  font_awesome_flutter: ^10.12.0
+  url_launcher: ^6.3.2
+ 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  
+  flutter_launcher_icons: ^0.14.4
+
+
+flutter_icons:
+  android: true
+  iOS : true
+  image_path: "assets/logo_claire.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

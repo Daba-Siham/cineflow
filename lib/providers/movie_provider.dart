@@ -10,6 +10,7 @@ class MovieProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
 
   // ----------------- HISTORIQUE -----------------
+
   List<Movie> _history = [];
   List<Movie> get history => _history;
 
@@ -23,21 +24,26 @@ class MovieProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addToHistory(Movie movie) async {
-    _history.removeWhere((item) => item.imdbID == movie.imdbID);
-    _history.insert(0, movie);
-    if (_history.length > 10) {
-      _history.removeLast();
-    }
+ // lib/providers/movie_provider.dart
+Future<void> addToHistory(Movie movie) async {
+  _history.removeWhere((item) => item.imdbID == movie.imdbID);
+  _history.insert(0, movie);
 
-    try {
-      await DatabaseService.insertHistory(movie);
-    } catch (_) {}
-
-    notifyListeners();
+  // Augmente la limite pour que la pagination ait un effet
+  if (_history.length > 100) {
+    _history.removeLast();
   }
 
+  try {
+    await DatabaseService.insertHistory(movie);
+  } catch (_) {}
+
+  notifyListeners();
+}
+
+
   // ----------------- RECHERCHE -----------------
+
   List<Movie> _results = [];
   List<Movie> get results => _results;
 
@@ -49,6 +55,7 @@ class MovieProvider extends ChangeNotifier {
 
   String _lastQuery = '';
   int _currentPage = 1;
+
   bool _hasMore = true;
   bool get hasMore => _hasMore;
 
@@ -74,12 +81,15 @@ class MovieProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // searchMovies = alias vers searchMulti (TMDb /search/multi)
       final movies =
           await _apiService.searchMovies(_lastQuery, page: _currentPage);
       _results = movies;
 
       if (movies.isEmpty) {
-        _errorMessage = 'Aucun film trouvé.';
+        _errorMessage = 'Aucun résultat trouvé.';
+        _hasMore = false;
+      } else if (movies.length < 20) {
         _hasMore = false;
       }
     } catch (_) {
@@ -102,11 +112,13 @@ class MovieProvider extends ChangeNotifier {
       _currentPage++;
       final movies =
           await _apiService.searchMovies(_lastQuery, page: _currentPage);
-
       if (movies.isEmpty) {
         _hasMore = false;
       } else {
         _results.addAll(movies);
+        if (movies.length < 20) {
+          _hasMore = false;
+        }
       }
     } catch (_) {
       _hasMore = false;
@@ -121,7 +133,7 @@ class MovieProvider extends ChangeNotifier {
   List<Movie> _catalog = [];
   List<Movie> get catalog => _catalog;
 
-    List<Movie> get catalogMovies =>
+  List<Movie> get catalogMovies =>
       _catalog.where((m) => m.type.toLowerCase() == 'movie').toList();
 
   List<Movie> get catalogSeries =>
@@ -130,26 +142,22 @@ class MovieProvider extends ChangeNotifier {
   bool _isCatalogLoading = false;
   bool get isCatalogLoading => _isCatalogLoading;
 
-    Future<void> loadCatalog() async {
+  /// Chargé une seule fois. Utilise searchMovies (=> searchMulti TMDb).
+  Future<void> loadCatalog() async {
     if (_isCatalogLoading) return;
-
     _isCatalogLoading = true;
+    notifyListeners();
 
     try {
       final Map<String, Movie> tmp = {};
-      for (final q in kCatalogQueries) {
-        // films
-        final movieResults = await _apiService.searchMovies(q);
-        for (final m in movieResults) {
-          tmp[m.imdbID] = m;
-        }
 
-        // séries
-        final tvResults = await _apiService.searchSeries(q);
-        for (final s in tvResults) {
-          tmp[s.imdbID] = s;
+      for (final q in kCatalogQueries) {
+        final results = await _apiService.searchMovies(q);
+        for (final m in results) {
+          tmp[m.imdbID] = m; // évite les doublons
         }
       }
+
       _catalog = tmp.values.toList();
     } catch (_) {
       _catalog = [];
@@ -159,10 +167,8 @@ class MovieProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
-  // Top films pour le carousel
-    // Top films pour le carousel (version rapide, sans recalcul de notes)
-   Future<List<Movie>> getTopRatedFromCatalog({int limit = 5}) async {
+  /// Top films pour le carousel, basé sur Movie.rating (vote_average TMDb).
+  Future<List<Movie>> getTopRatedFromCatalog({int limit = 5}) async {
     if (catalog.isEmpty) {
       await loadCatalog();
     }
@@ -170,30 +176,16 @@ class MovieProvider extends ChangeNotifier {
     final moviesOnly = catalogMovies;
     if (moviesOnly.isEmpty) return [];
 
-    final List<MapEntry<Movie, double>> withRatings = [];
-    final subset = moviesOnly.take(40).toList();
-
-    for (final m in subset) {
-      try {
-        final detail = await _apiService.getMovieDetail(m.imdbID);
-        if (detail != null && detail.imdbRating.isNotEmpty) {
-          final rating = double.tryParse(detail.imdbRating) ?? 0.0;
-
-          // on ignore les films sans note réelle
-          if (rating > 0) {
-            withRatings.add(MapEntry(m, rating));
-          }
-        }
-      } catch (_) {}
-    }
+    final withRatings = moviesOnly
+        .where((m) => m.rating != null && m.rating! > 0)
+        .toList();
 
     if (withRatings.isEmpty) {
-      // fallback: au cas où aucune note > 0, on prend juste les premiers
       return moviesOnly.take(limit).toList();
     }
 
-    withRatings.sort((a, b) => b.value.compareTo(a.value));
-    return withRatings.take(limit).map((e) => e.key).toList();
-  }
+    withRatings.sort((a, b) => b.rating!.compareTo(a.rating!));
 
+    return withRatings.take(limit).toList();
+  }
 }

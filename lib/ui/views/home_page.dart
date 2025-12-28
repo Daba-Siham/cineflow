@@ -1,16 +1,20 @@
+// lib/ui/views/home_page.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:cineflow/ui/views/search_page.dart';
 import 'package:cineflow/ui/views/favorites_page.dart';
-import 'package:provider/provider.dart';
-import 'package:cineflow/providers/theme_provider.dart';
 import 'package:cineflow/ui/views/settings_page.dart';
+import 'package:cineflow/ui/views/filtrage_page.dart';
+
 import '../widgets/carousel_slider.dart';
 import '../widgets/history_section.dart';
 import '../widgets/movie_catalog_section.dart';
 import '../widgets/recommendation_section.dart';
 import '../widgets/series_catalog_section.dart';
+
 import 'package:cineflow/providers/movie_provider.dart';
+import 'package:cineflow/providers/theme_provider.dart';
 
 // ----------------- PAGE ACCUEIL (MAINWELCOME) -----------------
 
@@ -37,7 +41,7 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
       child: Column(
         children: [
           SizedBox(height: 12),
-          CarouselSliderHome(), 
+          CarouselSliderHome(),
           SizedBox(height: 12),
           HistorySection(),
           SizedBox(height: 20),
@@ -52,7 +56,6 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
     );
   }
 }
-
 
 // ----------------- HOME PAGE (NAVIGATION) -----------------
 
@@ -93,8 +96,10 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(width: 10),
             const Text(
               'CineFlow',
-              style:
-                  TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
             ),
           ],
         ),
@@ -107,8 +112,7 @@ class _HomePageState extends State<HomePage> {
                   : Icons.dark_mode,
             ),
             onPressed: () {
-              Provider.of<ThemeProvider>(context, listen: false)
-                  .toggleTheme();
+              Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
             },
           ),
           // Bouton paramètres
@@ -118,7 +122,18 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const SettingsPage()),
+                  builder: (context) => const SettingsPage(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: "Filtrer",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FiltragePage()),
               );
             },
           ),
