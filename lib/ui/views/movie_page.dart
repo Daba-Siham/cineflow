@@ -1,4 +1,3 @@
-// lib/ui/views/movies_page.dart
 import 'package:flutter/material.dart';
 
 import '../../core/utils/pagination_utils.dart';
@@ -6,7 +5,6 @@ import '../../data/models/movie.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/movie_card.dart';
 import '../widgets/pagination_bar.dart';
-
 
 class MoviesPage extends StatefulWidget {
   final List<Movie> movies;

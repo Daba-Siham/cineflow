@@ -1,12 +1,16 @@
-// lib/ui/views/home_page.dart
-import 'package:cineflow/ui/views/download_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:cineflow/ui/views/search_page.dart';
 import 'package:cineflow/ui/views/favorites_page.dart';
+import 'package:cineflow/ui/views/profile_page.dart';
 import 'package:cineflow/ui/views/settings_page.dart';
 import 'package:cineflow/ui/views/filtrage_page.dart';
+import 'package:cineflow/ui/views/download_page.dart';
+
+import 'package:cineflow/providers/theme_provider.dart';
+import 'package:cineflow/providers/movie_provider.dart';
+import 'package:cineflow/providers/auth_provider.dart';
 
 import '../widgets/carousel_slider.dart';
 import '../widgets/history_section.dart';
@@ -14,10 +18,7 @@ import '../widgets/movie_catalog_section.dart';
 import '../widgets/recommendation_section.dart';
 import '../widgets/series_catalog_section.dart';
 
-import 'package:cineflow/providers/movie_provider.dart';
-import 'package:cineflow/providers/theme_provider.dart';
-
-// ----------------- PAGE ACCUEIL (MAINWELCOME) -----------------
+// ----------------- PAGE ACCUEIL -----------------
 
 class MainWelcomePage extends StatefulWidget {
   const MainWelcomePage({super.key});
@@ -30,8 +31,12 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
   @override
   void initState() {
     super.initState();
-    // Charge le catalogue une seule fois quand la page s'affiche
-    Future.microtask(() => context.read<MovieProvider>().loadCatalog());
+    Future.microtask(() {
+      final movieProvider = context.read<MovieProvider>();
+      final auth = context.read<AuthProvider>();
+      movieProvider.loadCatalog();
+      movieProvider.loadHistory(auth: auth);
+    });
   }
 
   @override
@@ -46,9 +51,9 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
           SizedBox(height: 20),
           RecommendationSection(),
           SizedBox(height: 20),
-          MoviesCatalogSection(), // Films du catalogue
+          MoviesCatalogSection(),
           SizedBox(height: 20),
-          SeriesCatalogSection(), // Séries du catalogue
+          SeriesCatalogSection(),
           SizedBox(height: 20),
         ],
       ),
@@ -59,28 +64,38 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
 // ----------------- HOME PAGE (NAVIGATION) -----------------
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final int initialIndex;
+  const HomePage({
+    super.key,
+    this.initialIndex = 0,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int index = 0;
+  late int index;
+
+  @override
+  void initState() {
+    super.initState();
+    index = widget.initialIndex;
+  }
 
   final List<Widget> pages = const [
-    MainWelcomePage(), // Page Accueil
-    SearchPage(), // Page Recherche
-    FavoritesPage(), // Page Favoris
+    MainWelcomePage(),
+    SearchPage(),
+    FavoritesPage(),
+    ProfilePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    // Vérifier si on est en mode sombre ou clair pour le logo
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    String logoPath = isDarkMode
-        ? 'assets/logo_sombre.png'
-        : 'assets/logo_claire.png';
+    final safeIndex = index.clamp(0, pages.length - 1);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final logoPath =
+        isDarkMode ? 'assets/logo_sombre.png' : 'assets/logo_claire.png';
 
     return Scaffold(
       appBar: AppBar(
@@ -96,12 +111,14 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(width: 10),
             const Text(
               'CineFlow',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
             ),
           ],
         ),
         actions: [
-          // Bouton thème
           IconButton(
             icon: Icon(
               Theme.of(context).brightness == Brightness.dark
@@ -109,28 +126,17 @@ class _HomePageState extends State<HomePage> {
                   : Icons.dark_mode,
             ),
             onPressed: () {
-              Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+              Provider.of<ThemeProvider>(context, listen: false)
+                  .toggleTheme();
             },
           ),
-          // Bouton paramètres
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const SettingsPage()),
-              );
-            },
-          ),
-
-          // A suuprimer *************?????
-          IconButton(
-            icon: const Icon(Icons.download),
-            tooltip: 'Téléchargements',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const DownloadsPage()),
+                MaterialPageRoute(
+                    builder: (context) => const SettingsPage()),
               );
             },
           ),
@@ -146,11 +152,11 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: pages[index],
+      body: pages[safeIndex],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: index,
+        currentIndex: safeIndex,
         onTap: (i) {
-          if (index == 1 && i != 1) {
+          if (safeIndex == 1 && i != 1) {
             context.read<MovieProvider>().clearSearch();
           }
           setState(() => index = i);
@@ -158,9 +164,22 @@ class _HomePageState extends State<HomePage> {
         selectedItemColor: Colors.red,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Accueil"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Recherche"),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: "Favoris"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Accueil",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: "Recherche",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: "Favoris",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profil",
+          ),
         ],
       ),
     );

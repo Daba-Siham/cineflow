@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:cineflow/providers/movie_provider.dart';
 import 'package:cineflow/providers/favorites_provider.dart';
+import 'package:cineflow/providers/auth_provider.dart';
 import 'package:cineflow/data/models/movie.dart';
 import 'package:cineflow/ui/views/movie_details_page.dart';
 
@@ -23,7 +24,8 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
   @override
   void initState() {
     super.initState();
-    futureTop = context.read<MovieProvider>().getTopRatedFromCatalog(limit: 5);
+    futureTop =
+        context.read<MovieProvider>().getTopRatedFromCatalog(limit: 5);
   }
 
   @override
@@ -132,21 +134,45 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // BOUTON FAVORITE
+                          // BOUTON FAVORITE avec auth backend
                           ActionButton(
                             label: 'Favorite',
                             color: Colors.red,
                             icon: Icons.favorite,
                             onTap: () async {
+                              final auth = context.read<AuthProvider>();
                               final favProvider =
                                   context.read<FavoritesProvider>();
+
+                              if (!auth.isLoggedIn) {
+                                if (!mounted) return;
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: const Text("Connexion requise"),
+                                    content: const Text(
+                                      "Connecte-toi ou crée un compte pour ajouter des favoris.",
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context),
+                                        child: const Text("OK"),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                return;
+                              }
 
                               final alreadyFav = favProvider
                                   .isFavorite(currentMovie.imdbID);
 
                               if (alreadyFav) {
-                                await favProvider
-                                    .removeFavorite(currentMovie.imdbID);
+                                await favProvider.removeFavorite(
+                                  currentMovie.imdbID,
+                                  auth: auth,
+                                );
                               } else {
                                 final movieMap = {
                                   'id': currentMovie.imdbID,
@@ -155,7 +181,10 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                                   'year': currentMovie.year,
                                   'type': currentMovie.type,
                                 };
-                                await favProvider.addFavorite(movieMap);
+                                await favProvider.addFavorite(
+                                  movieMap,
+                                  auth: auth,
+                                );
                               }
 
                               if (!mounted) return;
@@ -198,9 +227,10 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                           final isActive = index == currentIndex;
                           if (isActive) {
                             return AnimatedContainer(
-                              duration: const Duration(milliseconds: 250),
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 3),
+                              duration:
+                                  const Duration(milliseconds: 250),
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 3),
                               width: 4,
                               height: 10,
                               decoration: BoxDecoration(
@@ -213,8 +243,8 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                                 ? Colors.white
                                 : Colors.black.withOpacity(0.7);
                             return Container(
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 3),
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 3),
                               width: 5,
                               height: 5,
                               decoration: BoxDecoration(

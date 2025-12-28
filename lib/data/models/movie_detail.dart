@@ -124,13 +124,10 @@ class MovieDetail {
         [];
 
     final String firstAir = json['first_air_date'] ?? '';
-    final String year =
-        firstAir.isNotEmpty ? firstAir.substring(0, 4) : '';
+    final String year = firstAir.isNotEmpty ? firstAir.substring(0, 4) : '';
 
-    final String name = json['name'] ??
-        json['original_name'] ??
-        json['original_title'] ??
-        '';
+    final String name =
+        json['name'] ?? json['original_name'] ?? json['original_title'] ?? '';
 
     final int? episodeRunTime =
         (json['episode_run_time'] as List?)?.isNotEmpty == true

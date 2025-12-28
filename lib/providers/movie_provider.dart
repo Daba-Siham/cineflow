@@ -5,6 +5,8 @@ import 'package:cineflow/data/services/api_service.dart';
 import 'package:cineflow/data/services/database_service.dart';
 
 import '../core/constants/movie_queries.dart';
+import 'package:cineflow/providers/auth_provider.dart';
+import 'package:cineflow/data/services/history_api_service.dart';
 
 class MovieProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -14,33 +16,48 @@ class MovieProvider extends ChangeNotifier {
   List<Movie> _history = [];
   List<Movie> get history => _history;
 
-  Future<void> loadHistory() async {
+  void clearHistory() {
+    _history.clear();
+    notifyListeners();
+  }
+
+  Future<void> loadHistory({AuthProvider? auth}) async {
     try {
-      final data = await DatabaseService.getHistory();
-      _history = data.map((e) => Movie.fromMap(e)).toList();
+      if (auth != null && auth.isLoggedIn && auth.userId != null) {
+        final movies = await HistoryApiService.fetchHistory(auth.userId!);
+        _history = movies;
+      } else {
+        final data = await DatabaseService.getHistory();
+        _history = data.map((e) => Movie.fromMap(e)).toList();
+      }
     } catch (_) {
       _history = [];
     }
     notifyListeners();
   }
 
- // lib/providers/movie_provider.dart
-Future<void> addToHistory(Movie movie) async {
-  _history.removeWhere((item) => item.imdbID == movie.imdbID);
-  _history.insert(0, movie);
+  Future<void> addToHistory(
+    Movie movie, {
+    AuthProvider? auth,
+  }) async {
+    _history.removeWhere((item) => item.imdbID == movie.imdbID);
+    _history.insert(0, movie);
 
-  // Augmente la limite pour que la pagination ait un effet
-  if (_history.length > 100) {
-    _history.removeLast();
+    // tu peux garder 100 entrées si tu veux que la reco ait plus de données
+    if (_history.length > 100) {
+      _history.removeLast();
+    }
+
+    try {
+      if (auth != null && auth.isLoggedIn && auth.userId != null) {
+        await HistoryApiService.addToHistory(auth.userId!, movie);
+      } else {
+        await DatabaseService.insertHistory(movie);
+      }
+    } catch (_) {}
+
+    notifyListeners();
   }
-
-  try {
-    await DatabaseService.insertHistory(movie);
-  } catch (_) {}
-
-  notifyListeners();
-}
-
 
   // ----------------- RECHERCHE -----------------
 
@@ -81,7 +98,7 @@ Future<void> addToHistory(Movie movie) async {
     notifyListeners();
 
     try {
-      // searchMovies = alias vers searchMulti (TMDb /search/multi)
+      // searchMovies peut être un alias vers searchMulti, mais c’est déjà fusionné côté ApiService
       final movies =
           await _apiService.searchMovies(_lastQuery, page: _currentPage);
       _results = movies;
@@ -142,7 +159,7 @@ Future<void> addToHistory(Movie movie) async {
   bool _isCatalogLoading = false;
   bool get isCatalogLoading => _isCatalogLoading;
 
-  /// Chargé une seule fois. Utilise searchMovies (=> searchMulti TMDb).
+  /// Chargé une seule fois. Utilise searchMovies (=> TMDb).
   Future<void> loadCatalog() async {
     if (_isCatalogLoading) return;
     _isCatalogLoading = true;
@@ -152,9 +169,16 @@ Future<void> addToHistory(Movie movie) async {
       final Map<String, Movie> tmp = {};
 
       for (final q in kCatalogQueries) {
-        final results = await _apiService.searchMovies(q);
-        for (final m in results) {
-          tmp[m.imdbID] = m; // évite les doublons
+        // films
+        final movieResults = await _apiService.searchMovies(q);
+        for (final m in movieResults) {
+          tmp[m.imdbID] = m;
+        }
+
+        // séries (si tu veux aussi les avoir dans le catalogue)
+        final tvResults = await _apiService.searchSeries(q);
+        for (final s in tvResults) {
+          tmp[s.imdbID] = s;
         }
       }
 

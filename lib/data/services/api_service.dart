@@ -20,11 +20,41 @@ class ApiService {
 
   // -------- SEARCH (TMDb) --------
 
-  // Compatibilité: ancien code qui appelait searchMovies
-  Future<List<Movie>> searchMovies(String query, {int page = 1}) {
-    return searchMulti(query, page: page);
+  // Compatibilité: ancien code qui appelait searchMovies (films seuls)
+  Future<List<Movie>> searchMovies(String query, {int page = 1}) async {
+    final q = query.trim().isEmpty ? 'star' : query.trim();
+
+    final uri = Uri.parse(
+      '${ApiConstants.tmdbBaseUrl}/search/movie'
+      '?api_key=${ApiConstants.tmdbApiKey}'
+      '&query=$q'
+      '&page=$page'
+      '&language=fr-FR',
+    );
+
+    final data = await _getJson(uri);
+    final list = (data['results'] as List? ?? []);
+    return list.map((e) => Movie.fromJson(e, isTv: false)).toList();
   }
 
+  // Recherche séries seules (optionnel mais pratique)
+  Future<List<Movie>> searchSeries(String query, {int page = 1}) async {
+    final q = query.trim().isEmpty ? 'star' : query.trim();
+
+    final uri = Uri.parse(
+      '${ApiConstants.tmdbBaseUrl}/search/tv'
+      '?api_key=${ApiConstants.tmdbApiKey}'
+      '&query=$q'
+      '&page=$page'
+      '&language=fr-FR',
+    );
+
+    final data = await _getJson(uri);
+    final list = (data['results'] as List? ?? []);
+    return list.map((e) => Movie.fromJson(e, isTv: true)).toList();
+  }
+
+  // Recherche mixte (films + séries)
   Future<List<Movie>> searchMulti(String query, {int page = 1}) async {
     final q = query.trim().isEmpty ? 'star' : query.trim();
 
@@ -43,11 +73,13 @@ class ApiService {
 
     for (final raw in list) {
       final mediaType = raw['media_type'];
-
       if (mediaType == 'movie') {
         results.add(Movie.fromJson(raw, isTv: false));
       } else if (mediaType == 'tv') {
         results.add(Movie.fromJson(raw, isTv: true));
+      } else {
+        // on ignore 'person' et autres
+        continue;
       }
     }
 
@@ -99,7 +131,10 @@ class ApiService {
         .toList();
   }
 
-  Future<List<CastMember>> getCast(String tmdbId, {required bool isTv}) async {
+  Future<List<CastMember>> getCast(
+    String tmdbId, {
+    required bool isTv,
+  }) async {
     final uri = Uri.parse(
       '${ApiConstants.tmdbBaseUrl}/${isTv ? 'tv' : 'movie'}/$tmdbId/credits'
       '?api_key=${ApiConstants.tmdbApiKey}'

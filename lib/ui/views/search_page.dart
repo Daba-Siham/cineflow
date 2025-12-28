@@ -1,16 +1,16 @@
 // lib/ui/views/search_page.dart
 import 'dart:async';
+
+import 'package:cineflow/core/utils/pagination_utils.dart';
+import 'package:cineflow/providers/movie_provider.dart';
+import 'package:cineflow/providers/search_history_provider.dart';
+import 'package:cineflow/ui/views/movie_details_page.dart';
+import 'package:cineflow/ui/widgets/history_section.dart';
+import 'package:cineflow/ui/widgets/pagination_bar.dart';
+import 'package:cineflow/ui/widgets/recommendation_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-
-import 'package:cineflow/providers/movie_provider.dart';
-import 'package:cineflow/providers/search_history_provider.dart';
-import '../../core/utils/pagination_utils.dart';
-import 'movie_details_page.dart';
-import '../widgets/history_section.dart';
-import '../widgets/recommendation_section.dart';
-import '../widgets/pagination_bar.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -29,7 +29,6 @@ class _SearchPageState extends State<SearchPage> {
 
   bool _showAllRecent = false;
 
-  // Pagination locale sur les résultats
   static const int perPage = 10;
   int _currentPage = 1;
   int _groupStart = 1;
@@ -42,7 +41,21 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _initSpeech() async {
-    _speechAvailable = await _speech.initialize();
+    _speechAvailable = await _speech.initialize(
+      onStatus: (status) {
+        // status: listening / notListening / done / error
+        if (status == 'notListening' || status == 'done') {
+          if (mounted) {
+            setState(() => _isListening = false);
+          }
+        }
+      },
+      onError: (error) {
+        if (mounted) {
+          setState(() => _isListening = false);
+        }
+      },
+    );
     if (mounted) setState(() {});
   }
 
@@ -99,13 +112,17 @@ class _SearchPageState extends State<SearchPage> {
     } else {
       if (mounted) setState(() => _isListening = true);
 
-      await _speech.listen(
+      final success = await _speech.listen(
         localeId: 'fr_FR',
         onResult: (result) {
           final text = result.recognizedWords;
           _runSearch(text);
         },
       );
+
+      if (!success && mounted) {
+        setState(() => _isListening = false);
+      }
     }
   }
 
@@ -116,7 +133,6 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
-  // Pagination handlers
   void _onPageSelected(int p) {
     setState(() => _currentPage = p);
   }
@@ -151,7 +167,6 @@ class _SearchPageState extends State<SearchPage> {
     final List<String> visibleSearches =
         _showAllRecent ? allRecent : allRecent.take(maxVisible).toList();
 
-    // Pagination calculée sur les résultats actuels
     final results = movieProvider.results;
     final totalPages =
         (results.length / perPage).ceil().clamp(1, 9999);
@@ -178,14 +193,17 @@ class _SearchPageState extends State<SearchPage> {
               ),
               prefixIcon: Icon(
                 Icons.search,
-                color: Theme.of(context).colorScheme.primary,
+                color: isDarkMode ? Colors.white : Colors.black,
               ),
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (_controller.text.isNotEmpty)
                     IconButton(
-                      icon: const Icon(Icons.close),
+                      icon: Icon(
+                        Icons.close,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
                       onPressed: () {
                         _controller.clear();
                         context.read<MovieProvider>().clearSearch();
@@ -198,7 +216,7 @@ class _SearchPageState extends State<SearchPage> {
                       _isListening ? Icons.mic : Icons.mic_none,
                       color: _isListening
                           ? Colors.red
-                          : Theme.of(context).colorScheme.primary,
+                          : (isDarkMode ? Colors.white : Colors.black),
                     ),
                     onPressed: _toggleListening,
                   ),
@@ -217,9 +235,7 @@ class _SearchPageState extends State<SearchPage> {
 
           const SizedBox(height: 16),
 
-          // Recently Searched :
-          // - Champ vide ET au moins 1 recherche => afficher
-          // - Sinon => rien
+          // Recently Searched
           if (!hasQuery && allRecent.isNotEmpty) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -277,7 +293,8 @@ class _SearchPageState extends State<SearchPage> {
                           'More ▾',
                           style: TextStyle(
                             fontSize: 14,
-                            color: isDarkMode ? Colors.black : Colors.white,
+                            color:
+                                isDarkMode ? Colors.black : Colors.white,
                           ),
                         ),
                       ),
@@ -310,7 +327,9 @@ class _SearchPageState extends State<SearchPage> {
                             q,
                             style: TextStyle(
                               fontSize: 16,
-                              color: isDarkMode ? Colors.black : Colors.white,
+                              color: isDarkMode
+                                  ? Colors.black
+                                  : Colors.white,
                             ),
                           ),
                         ),
@@ -324,8 +343,9 @@ class _SearchPageState extends State<SearchPage> {
                           child: Icon(
                             Icons.close,
                             size: 16,
-                            color:
-                                isDarkMode ? Colors.black : Colors.white,
+                            color: isDarkMode
+                                ? Colors.black
+                                : Colors.white,
                           ),
                         ),
                       ],
@@ -364,7 +384,8 @@ class _SearchPageState extends State<SearchPage> {
 
                 if (movieProvider.errorMessage != null &&
                     movieProvider.results.isEmpty) {
-                  return Center(child: Text(movieProvider.errorMessage!));
+                  return Center(
+                      child: Text(movieProvider.errorMessage!));
                 }
 
                 if (movieProvider.results.isEmpty) {

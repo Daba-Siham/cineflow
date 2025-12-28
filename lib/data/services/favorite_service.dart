@@ -11,7 +11,6 @@ class FavoritesService {
   }
 
   Future<Database> _initDB() async {
-
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'favorites.db');
 
@@ -48,7 +47,7 @@ class FavoritesService {
     return await db.query('favorites');
   }
 
-  //  DELETE
+  // DELETE
   Future<void> deleteFavorite(String id) async {
     final db = await database;
     await db.delete(

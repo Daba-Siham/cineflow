@@ -1,4 +1,3 @@
-// lib/ui/widgets/movie_page_buttons.dart
 import 'package:flutter/material.dart';
 
 class MoviePageButtons extends StatelessWidget {
@@ -6,7 +5,7 @@ class MoviePageButtons extends StatelessWidget {
   final VoidCallback onToggleFavorite;
   final VoidCallback onShare;
 
-  // 🔽 nouveaux paramètres pour le download offline
+  // download offline
   final bool isDownloaded;
   final VoidCallback onToggleDownload;
 
@@ -52,28 +51,27 @@ class MoviePageButtons extends StatelessWidget {
 
           // DOWNLOAD (toggle sqlite)
           InkWell(
-  onTap: onToggleDownload, // ⬅ important
-  child: Container(
-    padding: const EdgeInsets.all(10),
-    decoration: BoxDecoration(
-      color: const Color(0xFF292B37),
-      borderRadius: BorderRadius.circular(10),
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xFF292B37).withOpacity(0.5),
-          spreadRadius: 1,
-          blurRadius: 4,
-        ),
-      ],
-    ),
-    child: Icon(
-      isDownloaded ? Icons.download_done : Icons.download,
-      color: Colors.white,
-      size: 35,
-    ),
-  ),
-),
-
+            onTap: onToggleDownload,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF292B37),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF292B37).withOpacity(0.5),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Icon(
+                isDownloaded ? Icons.download_done : Icons.download,
+                color: Colors.white,
+                size: 35,
+              ),
+            ),
+          ),
 
           // SHARE
           InkWell(

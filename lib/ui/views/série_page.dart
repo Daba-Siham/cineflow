@@ -1,4 +1,3 @@
-// lib/ui/views/series_page.dart
 import 'package:flutter/material.dart';
 
 import '../../core/utils/pagination_utils.dart';
@@ -62,7 +61,7 @@ class _SeriesPageState extends State<SeriesPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Toutes les séries')),
+      appBar: AppBar(title: Text('Toutes les séries')),
       body: Column(
         children: [
           Expanded(

@@ -1,4 +1,3 @@
-// lib/data/services/database_service.dart
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:cineflow/data/models/movie.dart';
@@ -60,6 +59,7 @@ class DatabaseService {
   static Future<Database> initDB() => _openDB();
 
   // -------- HISTORY --------
+
   static Future<List<Map<String, dynamic>>> getHistory() async {
     final db = await initDB();
     return await db.query(
@@ -85,6 +85,7 @@ class DatabaseService {
   }
 
   // -------- DOWNLOADS --------
+
   static Future<void> insertDownload(Movie movie) async {
     final db = await initDB();
     await db.insert(

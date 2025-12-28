@@ -1,4 +1,3 @@
-// lib/data/models/movie.dart
 class Movie {
   final String title;
   final String year;
@@ -18,6 +17,7 @@ class Movie {
     this.rating,
   });
 
+  // Pour SQLite / local
   factory Movie.fromMap(Map<String, dynamic> map) {
     return Movie(
       imdbID: map['id'] ?? '',
@@ -44,6 +44,7 @@ class Movie {
     };
   }
 
+  // isTv = true => JSON venant de /search/tv ou /tv
   factory Movie.fromJson(
     Map<String, dynamic> json, {
     bool isTv = false,
@@ -51,6 +52,7 @@ class Movie {
     final String date =
         isTv ? (json['first_air_date'] ?? '') : (json['release_date'] ?? '');
     final String year = date.isNotEmpty ? date.substring(0, 4) : '';
+
     final String title = isTv
         ? (json['name'] ?? json['original_name'] ?? '')
         : (json['title'] ?? '');

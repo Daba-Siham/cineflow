@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cineflow/data/services/recommendation_service.dart';
+import 'package:cineflow/data/models/movie.dart';
 import 'package:cineflow/ui/widgets/movie_card.dart';
 import 'empty_state.dart';
 import 'package:cineflow/ui/views/recommendations_page.dart';
@@ -9,13 +10,22 @@ class RecommendationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: RecommendationService().getRecommendations(),
+    return FutureBuilder<List<Movie>>(
+      future: RecommendationService().getRecommendations(context, limit: 10),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
             height: 120,
             child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return const SizedBox(
+            height: 120,
+            child: EmptyState(
+              message: "Impossible de charger les recommandations.",
+            ),
           );
         }
 
@@ -55,7 +65,7 @@ class RecommendationSection extends StatelessWidget {
                 height: 120,
                 child: EmptyState(
                   message:
-                      "Consulte au moins un film pour avoir des recommandations.",
+                      "Pas encore de recommandations disponibles.",
                 ),
               )
             else

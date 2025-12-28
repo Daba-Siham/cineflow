@@ -1,4 +1,3 @@
-// lib/ui/views/movie_details_page.dart
 import 'package:cineflow/providers/downloads_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,28 +6,36 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+
 import 'package:cineflow/providers/movie_provider.dart';
 import 'package:cineflow/providers/favorites_provider.dart';
+import 'package:cineflow/providers/auth_provider.dart';
+
+
 import 'package:cineflow/data/models/movie.dart';
 import 'package:cineflow/data/models/movie_detail.dart';
 import 'package:cineflow/data/models/cast_member.dart';
 import 'package:cineflow/data/models/review.dart';
 import 'package:cineflow/data/services/api_service.dart';
 
+
 import 'package:cineflow/ui/widgets/movie_page_buttons.dart';
 import 'package:cineflow/ui/widgets/recommendation_section.dart';
 import 'package:cineflow/ui/widgets/review_card.dart';
-
 import '../widgets/cast_section.dart';
+
 
 class MovieDetailsPage extends StatefulWidget {
   final Movie movie;
 
+
   const MovieDetailsPage({super.key, required this.movie});
+
 
   @override
   State<MovieDetailsPage> createState() => _MovieDetailsPageState();
 }
+
 
 class _MovieDetailsPageState extends State<MovieDetailsPage> {
   final ApiService _apiService = ApiService();
@@ -36,11 +43,14 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
   bool _isLoading = true;
   String? _errorMessage;
 
+
   bool isFavorite = false;
   bool isDownloaded = false;
 
+
   List<CastMember> _cast = [];
   List<Review> _reviews = [];
+
 
   @override
   void initState() {
@@ -52,12 +62,14 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     });
   }
 
+
   void _refreshFavoriteState() {
     final favProvider = context.read<FavoritesProvider>();
     setState(() {
       isFavorite = favProvider.isFavorite(widget.movie.imdbID);
     });
   }
+
 
   void _refreshDownloadState() {
     final dProvider = context.read<DownloadsProvider>();
@@ -66,13 +78,16 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     });
   }
 
+
   Future<void> _loadDetails() async {
     MovieDetail? data;
     List<CastMember> cast = [];
     List<Review> reviews = [];
 
+
     try {
       final bool isSeries = widget.movie.type.toLowerCase() == 'series';
+
 
       if (isSeries) {
         data = await _apiService.getTvDetail(widget.movie.imdbID);
@@ -80,11 +95,13 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
         data = await _apiService.getMovieDetail(widget.movie.imdbID);
       }
 
+
       if (data != null) {
         cast = await _apiService.getCast(
           widget.movie.imdbID,
           isTv: isSeries,
         );
+
 
         reviews = await _apiService.getReviews(
           widget.movie.imdbID,
@@ -92,7 +109,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
         );
       }
 
+
       if (!mounted) return;
+
 
       setState(() {
         _details = data;
@@ -112,7 +131,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
       return;
     }
 
+
     if (!mounted || data == null) return;
+
 
     final movieForHistory = Movie(
       imdbID: widget.movie.imdbID,
@@ -124,31 +145,69 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
       rating: widget.movie.rating,
     );
 
-    await context.read<MovieProvider>().addToHistory(movieForHistory);
+
+    final auth = context.read<AuthProvider>();
+
+
+    await context.read<MovieProvider>().addToHistory(
+      movieForHistory,
+      auth: auth,
+    );
   }
 
+
   Future<void> _toggleFavorite() async {
+    final auth = context.read<AuthProvider>();
     final favProvider = context.read<FavoritesProvider>();
 
-    if (isFavorite) {
-      await favProvider.removeFavorite(widget.movie.imdbID);
+
+    if (!auth.isLoggedIn) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Retiré des favoris")));
-    } else {
-      await favProvider.addFavorite({
-        'id': widget.movie.imdbID,
-        'title': widget.movie.title,
-        'poster': widget.movie.poster,
-        'year': widget.movie.year,
-        'type': widget.movie.type,
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Ajouté aux favoris")));
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Connexion requise"),
+          content: const Text(
+            "Tu dois te connecter ou créer un compte pour ajouter des favoris.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+      return;
     }
+
+
+    if (isFavorite) {
+      await favProvider.removeFavorite(
+        widget.movie.imdbID,
+        auth: auth,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Retiré des favoris")),
+      );
+    } else {
+      await favProvider.addFavorite(
+        {
+          'id': widget.movie.imdbID,
+          'title': widget.movie.title,
+          'poster': widget.movie.poster,
+          'year': widget.movie.year,
+          'type': widget.movie.type,
+        },
+        auth: auth,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ajouté aux favoris")),
+      );
+    }
+
 
     if (!mounted) return;
     setState(() {
@@ -156,8 +215,10 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     });
   }
 
+
   Future<void> _toggleDownload() async {
     final dProvider = context.read<DownloadsProvider>();
+
 
     if (isDownloaded) {
       await dProvider.removeDownload(widget.movie.imdbID);
@@ -182,14 +243,17 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
       );
     }
 
+
     if (!mounted) return;
     setState(() {
       isDownloaded = !isDownloaded;
     });
   }
 
+
   void _showPosterFullScreen(String url) {
     if (url.isEmpty) return;
+
 
     showDialog(
       context: context,
@@ -212,6 +276,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     );
   }
 
+
   Future<void> _launchUri(Uri uri) async {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (!mounted) return;
@@ -221,15 +286,18 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     }
   }
 
+
   void _showShareSheet() {
     final url = 'https://cineflow.app/movie/${widget.movie.imdbID}';
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
 
     final Color bgColor = isDark ? const Color(0xFF292B37) : Colors.white;
     final Color titleColor = isDark ? Colors.white : Colors.black;
     final Color shareIconColor = isDark ? Colors.white : Colors.black;
     final Color copyButtonBg = Colors.red;
     final Color copyTextColor = Colors.black;
+
 
     showModalBottomSheet(
       context: context,
@@ -282,8 +350,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                     ),
                     onPressed: () {
                       final encoded = Uri.encodeComponent(url);
-                      final uri =
-                          Uri.parse('https://wa.me/?text=$encoded');
+                      final uri = Uri.parse('https://wa.me/?text=$encoded');
                       _launchUri(uri);
                     },
                   ),
@@ -299,9 +366,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                   await Clipboard.setData(ClipboardData(text: url));
                   if (Navigator.of(ctx).canPop()) Navigator.of(ctx).pop();
                   if (!mounted) return;
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Lien copié')),
                   );
                 },
@@ -318,15 +383,18 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
 
     if (_isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
+
 
     if (_errorMessage != null) {
       return Scaffold(
@@ -335,14 +403,17 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
       );
     }
 
+
     if (_details == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: Center(child: Text('Aucune donnée.')),
+        body: const Center(child: Text('Aucune donnée.')),
       );
     }
 
+
     final details = _details!;
+
 
     return Scaffold(
       body: Stack(
@@ -385,7 +456,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                   ),
                 ),
 
+
                 const SizedBox(height: 20),
+
 
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -441,7 +514,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                   ),
                 ),
 
+
                 const SizedBox(height: 20),
+
 
                 MoviePageButtons(
                   isFavorite: isFavorite,
@@ -451,7 +526,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                   onToggleDownload: _toggleDownload,
                 ),
 
+
                 const SizedBox(height: 10),
+
 
                 Expanded(
                   child: SingleChildScrollView(
@@ -473,6 +550,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 10),
 
+
                           Text(
                             '${details.genre} • ${details.runtime} • ${details.rated}',
                             style: TextStyle(
@@ -483,6 +561,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                             ),
                           ),
                           const SizedBox(height: 15),
+
 
                           Row(
                             children: [
@@ -495,9 +574,8 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                               Text(
                                 details.imdbRating,
                                 style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white
-                                      : Colors.black,
+                                  color:
+                                      isDark ? Colors.white : Colors.black,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -506,19 +584,19 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 15),
 
+
                           CastSection(cast: _cast),
                           const SizedBox(height: 10),
 
+
                           Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0,
-                            ),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
                             child: Text(
                               'Description',
                               style: TextStyle(
-                                color: isDark
-                                    ? Colors.white
-                                    : Colors.black,
+                                color:
+                                    isDark ? Colors.white : Colors.black,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -528,17 +606,18 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           Text(
                             details.plot,
                             style: TextStyle(
-                              color: isDark
-                                  ? Colors.white
-                                  : Colors.black87,
+                              color:
+                                  isDark ? Colors.white : Colors.black87,
                               fontSize: 15,
                             ),
                             textAlign: TextAlign.justify,
                           ),
                           const SizedBox(height: 20),
 
+
                           const RecommendationSection(),
                           const SizedBox(height: 20),
+
 
                           if (_reviews.isNotEmpty) ...[
                             Padding(

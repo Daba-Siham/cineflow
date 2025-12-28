@@ -1,4 +1,3 @@
-// lib/ui/views/recommendations_page.dart
 import 'package:flutter/material.dart';
 
 import 'package:cineflow/data/models/movie.dart';
@@ -40,7 +39,9 @@ class _RecommendationsPageState extends State<RecommendationsPage> {
 
   Future<void> _loadRecommendations() async {
     try {
-      final list = await RecommendationService().getRecommendations();
+      // on utilise la nouvelle signature avec BuildContext + limit
+      final list =
+          await RecommendationService().getRecommendations(context, limit: 50);
       if (!mounted) return;
       setState(() {
         _recos = list;
@@ -49,7 +50,8 @@ class _RecommendationsPageState extends State<RecommendationsPage> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = "Erreur lors du chargement des recommandations.";
+        _errorMessage =
+            "Erreur lors du chargement des recommandations.";
         _isLoading = false;
       });
     }
@@ -116,7 +118,7 @@ class _RecommendationsPageState extends State<RecommendationsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Suggestions automatiques"),
+        title: Text("Suggestions automatiques"),
       ),
       body: Column(
         children: [

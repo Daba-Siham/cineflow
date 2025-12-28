@@ -1,11 +1,10 @@
-// lib/ui/views/history_page.dart
+import 'package:cineflow/ui/widgets/pagination_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:cineflow/providers/movie_provider.dart';
 import 'package:cineflow/ui/widgets/movie_card.dart';
 import 'package:cineflow/ui/widgets/empty_state.dart';
-import 'package:cineflow/ui/widgets/pagination_bar.dart';
 import 'package:cineflow/data/models/movie.dart';
 
 import '../../core/utils/pagination_utils.dart';
@@ -18,7 +17,6 @@ class HistoryPage extends StatefulWidget {
 }
 
 class _HistoryPageState extends State<HistoryPage> {
-  // Tu peux baisser à 4 pour vérifier que la pagination fonctionne visuellement
   static const int perPage = 10;
 
   int _currentPage = 1;
@@ -53,13 +51,12 @@ class _HistoryPageState extends State<HistoryPage> {
     final history = context.watch<MovieProvider>().history;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Aucun historique
     if (history.isEmpty) {
       return Scaffold(
         appBar: AppBar(
-          title: Text("Historique"),
+          title: const Text("Historique"),
         ),
-        body: Center(
+        body: const Center(
           child: EmptyState(
             message: "Aucun film consulté pour le moment.",
           ),
@@ -67,11 +64,8 @@ class _HistoryPageState extends State<HistoryPage> {
       );
     }
 
-    // Nombre total de pages
-    final totalPages =
-        (history.length / perPage).ceil().clamp(1, 9999);
+    final totalPages = (history.length / perPage).ceil().clamp(1, 9999);
 
-    // Sécurise currentPage / groupStart si la taille change
     if (_currentPage > totalPages) {
       _currentPage = totalPages;
     }

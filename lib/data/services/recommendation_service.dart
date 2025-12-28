@@ -1,11 +1,12 @@
 import 'package:cineflow/data/models/movie.dart';
 import 'package:cineflow/data/services/api_service.dart';
 import 'package:cineflow/data/services/database_service.dart';
+import 'package:flutter/src/widgets/framework.dart';
 
 class RecommendationService {
   final ApiService _apiService = ApiService();
 
-  Future<List<Movie>> getRecommendations() async {
+  Future<List<Movie>> getRecommendations(BuildContext context, {required int limit}) async {
     final history = await DatabaseService.getHistory();
     if (history.isEmpty) return [];
 
@@ -34,10 +35,17 @@ class RecommendationService {
     final topGenre = sortedGenres.first.key.trim();
     if (topGenre.isEmpty) return [];
 
+    // on utilise la searchMovies TMDb qu'on a fusionnée
     final recos = await _apiService.searchMovies(topGenre);
 
-    final historyIds = history.map((e) => (e['imdbID'] ?? '').toString()).toSet();
-    final filtered = recos.where((m) => !historyIds.contains(m.imdbID)).toList();
+    // attention : dans ta table history, la colonne id = tmdb id (imdbID dans Movie)
+    final historyIds = history
+        .map((e) => (e['id'] ?? '').toString())
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
+    final filtered =
+        recos.where((m) => !historyIds.contains(m.imdbID)).toList();
 
     return filtered;
   }
