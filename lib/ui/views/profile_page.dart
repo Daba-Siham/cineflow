@@ -9,6 +9,7 @@ import 'package:cineflow/providers/movie_provider.dart';
 import 'package:cineflow/providers/favorites_provider.dart';
 
 
+
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
@@ -19,7 +20,6 @@ class ProfilePage extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final themeProvider = context.watch<ThemeProvider>();
 
-    // 👇 Avatar unique pour toute la page (connecté ou pas)
     Widget avatar;
     if (auth.imgProfile != null && auth.imgProfile!.isNotEmpty) {
       avatar = CircleAvatar(
@@ -35,9 +35,6 @@ class ProfilePage extends StatelessWidget {
       );
     }
 
-    // =============================
-    //   CAS : UTILISATEUR NON LOGGÉ
-    // =============================
     if (!auth.isLoggedIn) {
       return Scaffold(
         backgroundColor: isDark ? const Color(0xFF111111) : Colors.white,
@@ -51,7 +48,7 @@ class ProfilePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 16),
-              avatar, // 👈 on utilise directement le widget avatar
+              avatar, 
               const SizedBox(height: 24),
               Text(
                 "Connectez-vous à cineFlow",
@@ -119,11 +116,12 @@ class ProfilePage extends StatelessWidget {
       );
     }
 
-    // ===========================
-    //   CAS : UTILISATEUR LOGGÉ
-    // ===========================
-    const int moviesWatched = 147;
-    const int favoritesCount = 42;
+    final movieProvider = context.watch<MovieProvider>();
+    final favProvider = context.watch<FavoritesProvider>();
+
+    final int moviesWatched = movieProvider.history.length;
+    final int favoritesCount = favProvider.favorites.length;
+
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF111111) : Colors.white,
@@ -137,7 +135,7 @@ class ProfilePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 8),
-            avatar, // 👈 ici aussi, le même avatar
+            avatar, 
             const SizedBox(height: 16),
             Text(
               auth.username,

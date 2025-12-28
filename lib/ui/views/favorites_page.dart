@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:cineflow/providers/favorites_provider.dart';
 import 'package:cineflow/providers/auth_provider.dart';
 import 'package:cineflow/ui/views/profile_page.dart';
+import 'package:cineflow/ui/views/movie_details_page.dart';
+import 'package:cineflow/data/models/movie.dart';
+
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
@@ -68,13 +71,29 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
                 return Card(
                   child: ListTile(
+                    onTap: () {
+                      final movieObj = Movie(
+                        imdbID: movie['id'],
+                        title: movie['title'],
+                        year: movie['year'] ?? '',
+                        poster: movie['poster'] ?? '',
+                        type: movie['type'] ?? '',
+                        genre: '',
+                      );
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MovieDetailsPage(movie: movieObj),
+                        ),
+                      );
+                    },
                     leading: Image.network(
                       movie['poster'].toString().replaceAll('_SX300', '_SX600'),
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, progress) {
                         if (progress == null) return child;
-                        return const Center(
-                            child: CircularProgressIndicator());
+                        return const Center(child: CircularProgressIndicator());
                       },
                     ),
                     title: Text(movie['title']),
@@ -90,6 +109,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                     ),
                   ),
                 );
+
               },
             ),
     );
