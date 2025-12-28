@@ -7,6 +7,7 @@ import 'package:cineflow/providers/movie_provider.dart';
 import 'package:cineflow/providers/favorites_provider.dart';
 
 import 'package:cineflow/ui/views/home_page.dart';
+import 'package:cineflow/ui/views/splash_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +47,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
       themeMode: themeProvider.themeMode,
-      home: const HomePage(), 
+      home: const CineFlowSplashPage(),
+      routes: {'/home': (_) => const HomePage()},
     );
   }
 }

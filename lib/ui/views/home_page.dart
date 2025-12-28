@@ -59,8 +59,6 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
 }
 
 
-// ----------------- HOME PAGE (NAVIGATION) -----------------
-
 class HomePage extends StatefulWidget {
   final int initialIndex;
   const HomePage({super.key,
