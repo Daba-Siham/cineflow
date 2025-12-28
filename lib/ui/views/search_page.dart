@@ -1,3 +1,4 @@
+// lib/ui/views/search_page.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -5,9 +6,11 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import 'package:cineflow/providers/movie_provider.dart';
 import 'package:cineflow/providers/search_history_provider.dart';
+import '../../core/utils/pagination_utils.dart';
 import 'movie_details_page.dart';
 import '../widgets/history_section.dart';
 import '../widgets/recommendation_section.dart';
+import '../widgets/pagination_bar.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -25,6 +28,11 @@ class _SearchPageState extends State<SearchPage> {
   bool _speechAvailable = false;
 
   bool _showAllRecent = false;
+
+  // Pagination locale sur les résultats
+  static const int perPage = 10;
+  int _currentPage = 1;
+  int _groupStart = 1;
 
   @override
   void initState() {
@@ -46,6 +54,11 @@ class _SearchPageState extends State<SearchPage> {
     super.dispose();
   }
 
+  void _resetPagination() {
+    _currentPage = 1;
+    _groupStart = 1;
+  }
+
   void _onSearchChanged(String value) {
     _debounce?.cancel();
 
@@ -54,10 +67,12 @@ class _SearchPageState extends State<SearchPage> {
 
     if (query.isEmpty) {
       context.read<MovieProvider>().clearSearch();
+      _resetPagination();
       return;
     }
 
     _debounce = Timer(const Duration(milliseconds: 500), () {
+      _resetPagination();
       context.read<MovieProvider>().search(query);
     });
   }
@@ -101,11 +116,33 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
+  // Pagination handlers
+  void _onPageSelected(int p) {
+    setState(() => _currentPage = p);
+  }
+
+  void _onPrevGroup(int totalPages) {
+    if (_groupStart <= 1) return;
+    setState(() {
+      _groupStart = (_groupStart - 5).clamp(1, totalPages);
+      _currentPage = _groupStart;
+    });
+  }
+
+  void _onNextGroup(int totalPages) {
+    final newStart = _groupStart + 5;
+    if (newStart > totalPages) return;
+    setState(() {
+      _groupStart = newStart;
+      _currentPage = _groupStart;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final movieProvider = context.watch<MovieProvider>();
     final historyProvider = context.watch<SearchHistoryProvider>();
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark; // [web:386]
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final hasQuery = _controller.text.trim().isNotEmpty;
 
@@ -113,6 +150,18 @@ class _SearchPageState extends State<SearchPage> {
     final List<String> allRecent = historyProvider.items;
     final List<String> visibleSearches =
         _showAllRecent ? allRecent : allRecent.take(maxVisible).toList();
+
+    // Pagination calculée sur les résultats actuels
+    final results = movieProvider.results;
+    final totalPages =
+        (results.length / perPage).ceil().clamp(1, 9999);
+    if (_currentPage > totalPages && totalPages > 0) {
+      _currentPage = totalPages;
+    }
+    if (_groupStart > totalPages && totalPages > 0) {
+      _groupStart = ((totalPages - 4) > 1 ? (totalPages - 4) : 1);
+    }
+    final pageItems = paginate(results, _currentPage, perPage);
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -140,6 +189,7 @@ class _SearchPageState extends State<SearchPage> {
                       onPressed: () {
                         _controller.clear();
                         context.read<MovieProvider>().clearSearch();
+                        _resetPagination();
                         setState(() {});
                       },
                     ),
@@ -167,8 +217,10 @@ class _SearchPageState extends State<SearchPage> {
 
           const SizedBox(height: 16),
 
-          // Historique de recherche (mots)
-          if (allRecent.isNotEmpty) ...[
+          // Recently Searched :
+          // - Champ vide ET au moins 1 recherche => afficher
+          // - Sinon => rien
+          if (!hasQuery && allRecent.isNotEmpty) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -181,14 +233,13 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
-                  onPressed: _clearAllRecent, // supprime tout
+                  onPressed: _clearAllRecent,
                   tooltip: 'Clear all',
                 ),
               ],
             ),
             const SizedBox(height: 8),
 
-            // Liste horizontale scrollable avec X par case [web:416][web:421]
             SizedBox(
               height: 40,
               child: ListView.separated(
@@ -226,8 +277,7 @@ class _SearchPageState extends State<SearchPage> {
                           'More ▾',
                           style: TextStyle(
                             fontSize: 14,
-                            color:
-                                isDarkMode ? Colors.black : Colors.white,
+                            color: isDarkMode ? Colors.black : Colors.white,
                           ),
                         ),
                       ),
@@ -260,9 +310,7 @@ class _SearchPageState extends State<SearchPage> {
                             q,
                             style: TextStyle(
                               fontSize: 16,
-                              color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                              color: isDarkMode ? Colors.black : Colors.white,
                             ),
                           ),
                         ),
@@ -271,14 +319,13 @@ class _SearchPageState extends State<SearchPage> {
                           onTap: () {
                             context
                                 .read<SearchHistoryProvider>()
-                                .remove(q); // supprime juste cette case
+                                .remove(q);
                           },
                           child: Icon(
                             Icons.close,
                             size: 16,
-                            color: isDarkMode
-                                ? Colors.black
-                                : Colors.white,
+                            color:
+                                isDarkMode ? Colors.black : Colors.white,
                           ),
                         ),
                       ],
@@ -320,13 +367,19 @@ class _SearchPageState extends State<SearchPage> {
                   return Center(child: Text(movieProvider.errorMessage!));
                 }
 
+                if (movieProvider.results.isEmpty) {
+                  return const Center(
+                    child: Text('Aucun résultat trouvé.'),
+                  );
+                }
+
                 return Column(
                   children: [
                     Expanded(
                       child: ListView.builder(
-                        itemCount: movieProvider.results.length,
+                        itemCount: pageItems.length,
                         itemBuilder: (context, index) {
-                          final movie = movieProvider.results[index];
+                          final movie = pageItems[index];
                           return ListTile(
                             leading: movie.poster.isNotEmpty
                                 ? Image.network(
@@ -340,7 +393,8 @@ class _SearchPageState extends State<SearchPage> {
                                   )
                                 : const Icon(Icons.movie),
                             title: Text(movie.title),
-                            subtitle: Text('${movie.year} • ${movie.type}'),
+                            subtitle:
+                                Text('${movie.year} • ${movie.type}'),
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -354,25 +408,17 @@ class _SearchPageState extends State<SearchPage> {
                         },
                       ),
                     ),
-                    if (movieProvider.hasMore)
-                      Padding(
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 8.0),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            context.read<MovieProvider>().loadMore();
-                          },
-                          child: movieProvider.isLoading
-                              ? const SizedBox(
-                                  height: 16,
-                                  width: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Voir plus'),
-                        ),
+                    if (totalPages > 1)
+                      PaginationBar(
+                        currentPage: _currentPage,
+                        totalPages: totalPages,
+                        groupStart: _groupStart,
+                        isDark: isDarkMode,
+                        onPrevGroup: () => _onPrevGroup(totalPages),
+                        onNextGroup: () => _onNextGroup(totalPages),
+                        onPageSelected: _onPageSelected,
                       ),
+                    const SizedBox(height: 8),
                   ],
                 );
               },

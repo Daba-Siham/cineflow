@@ -1,3 +1,4 @@
+// lib/ui/widgets/movie_page_buttons.dart
 import 'package:flutter/material.dart';
 
 class MoviePageButtons extends StatelessWidget {
@@ -5,11 +6,17 @@ class MoviePageButtons extends StatelessWidget {
   final VoidCallback onToggleFavorite;
   final VoidCallback onShare;
 
+  // 🔽 nouveaux paramètres pour le download offline
+  final bool isDownloaded;
+  final VoidCallback onToggleDownload;
+
   const MoviePageButtons({
     super.key,
     required this.isFavorite,
     required this.onToggleFavorite,
     required this.onShare,
+    required this.isDownloaded,
+    required this.onToggleDownload,
   });
 
   @override
@@ -29,7 +36,6 @@ class MoviePageButtons extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    // ignore: deprecated_member_use
                     color: const Color(0xFF292B37).withOpacity(0.5),
                     spreadRadius: 1,
                     blurRadius: 4,
@@ -44,31 +50,34 @@ class MoviePageButtons extends StatelessWidget {
             ),
           ),
 
-          // DOWNLOAD
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF292B37),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  // ignore: deprecated_member_use
-                  color: const Color(0xFF292B37).withOpacity(0.5),
-                  spreadRadius: 1,
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.download,
-              color: Colors.white,
-              size: 35,
-            ),
-          ),
+          // DOWNLOAD (toggle sqlite)
+          InkWell(
+  onTap: onToggleDownload, // ⬅ important
+  child: Container(
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: const Color(0xFF292B37),
+      borderRadius: BorderRadius.circular(10),
+      boxShadow: [
+        BoxShadow(
+          color: const Color(0xFF292B37).withOpacity(0.5),
+          spreadRadius: 1,
+          blurRadius: 4,
+        ),
+      ],
+    ),
+    child: Icon(
+      isDownloaded ? Icons.download_done : Icons.download,
+      color: Colors.white,
+      size: 35,
+    ),
+  ),
+),
+
 
           // SHARE
           InkWell(
-            onTap : onShare,
+            onTap: onShare,
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -76,7 +85,6 @@ class MoviePageButtons extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    // ignore: deprecated_member_use
                     color: const Color(0xFF292B37).withOpacity(0.5),
                     spreadRadius: 1,
                     blurRadius: 4,

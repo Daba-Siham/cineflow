@@ -1,3 +1,5 @@
+// lib/ui/views/movie_details_page.dart
+import 'package:cineflow/providers/downloads_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -16,6 +18,7 @@ import 'package:cineflow/data/services/api_service.dart';
 import 'package:cineflow/ui/widgets/movie_page_buttons.dart';
 import 'package:cineflow/ui/widgets/recommendation_section.dart';
 import 'package:cineflow/ui/widgets/review_card.dart';
+
 import '../widgets/cast_section.dart';
 
 class MovieDetailsPage extends StatefulWidget {
@@ -34,11 +37,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
   String? _errorMessage;
 
   bool isFavorite = false;
+  bool isDownloaded = false;
 
-  // cast avec images
   List<CastMember> _cast = [];
-
-  // reviews utilisateurs TMDb
   List<Review> _reviews = [];
 
   @override
@@ -47,6 +48,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     _loadDetails();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshFavoriteState();
+      _refreshDownloadState();
     });
   }
 
@@ -54,6 +56,13 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     final favProvider = context.read<FavoritesProvider>();
     setState(() {
       isFavorite = favProvider.isFavorite(widget.movie.imdbID);
+    });
+  }
+
+  void _refreshDownloadState() {
+    final dProvider = context.read<DownloadsProvider>();
+    setState(() {
+      isDownloaded = dProvider.isDownloaded(widget.movie.imdbID);
     });
   }
 
@@ -65,21 +74,18 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     try {
       final bool isSeries = widget.movie.type.toLowerCase() == 'series';
 
-      // détails film ou série
       if (isSeries) {
         data = await _apiService.getTvDetail(widget.movie.imdbID);
       } else {
         data = await _apiService.getMovieDetail(widget.movie.imdbID);
       }
 
-      // cast TMDb avec images
       if (data != null) {
         cast = await _apiService.getCast(
           widget.movie.imdbID,
           isTv: isSeries,
         );
 
-        // reviews TMDb
         reviews = await _apiService.getReviews(
           widget.movie.imdbID,
           isTv: isSeries,
@@ -115,6 +121,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
       poster: widget.movie.poster,
       type: widget.movie.type,
       genre: data.genre,
+      rating: widget.movie.rating,
     );
 
     await context.read<MovieProvider>().addToHistory(movieForHistory);
@@ -149,7 +156,38 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     });
   }
 
-  // affiche le poster en grand au centre
+  Future<void> _toggleDownload() async {
+    final dProvider = context.read<DownloadsProvider>();
+
+    if (isDownloaded) {
+      await dProvider.removeDownload(widget.movie.imdbID);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Supprimé des téléchargements")),
+      );
+    } else {
+      final toSave = Movie(
+        imdbID: widget.movie.imdbID,
+        title: widget.movie.title,
+        year: widget.movie.year,
+        genre: _details?.genre ?? widget.movie.genre,
+        poster: widget.movie.poster,
+        type: widget.movie.type,
+        rating: widget.movie.rating,
+      );
+      await dProvider.addDownload(toSave);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ajouté aux téléchargements")),
+      );
+    }
+
+    if (!mounted) return;
+    setState(() {
+      isDownloaded = !isDownloaded;
+    });
+  }
+
   void _showPosterFullScreen(String url) {
     if (url.isEmpty) return;
 
@@ -174,7 +212,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     );
   }
 
-  // lance une URL dans l'app externe (WhatsApp, Facebook, navigateur)
   Future<void> _launchUri(Uri uri) async {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (!mounted) return;
@@ -184,7 +221,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     }
   }
 
-  // bottom sheet de partage (thème clair/sombre)
   void _showShareSheet() {
     final url = 'https://cineflow.app/movie/${widget.movie.imdbID}';
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -220,12 +256,10 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // partage générique (menu natif)
                   IconButton(
                     icon: Icon(Icons.share, color: shareIconColor),
                     onPressed: () => Share.share(url),
                   ),
-                  // Facebook
                   IconButton(
                     icon: const FaIcon(
                       FontAwesomeIcons.facebook,
@@ -240,7 +274,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                       _launchUri(uri);
                     },
                   ),
-                  // WhatsApp
                   IconButton(
                     icon: const FaIcon(
                       FontAwesomeIcons.whatsapp,
@@ -314,7 +347,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // image de fond
           Opacity(
             opacity: 0.4,
             child: details.poster.isNotEmpty
@@ -333,7 +365,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
           SafeArea(
             child: Column(
               children: [
-                // barre haute avec bouton retour
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: 10,
@@ -356,7 +387,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
 
                 const SizedBox(height: 20),
 
-                // poster
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 15,
@@ -398,8 +428,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                                     color: Colors.grey[800],
                                     child: Icon(
                                       Icons.movie,
-                                      color:
-                                          isDark ? Colors.white : Colors.black,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black,
                                       size: 60,
                                     ),
                                   ),
@@ -412,16 +443,16 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
 
                 const SizedBox(height: 20),
 
-                // boutons (favori, download, share)
                 MoviePageButtons(
                   isFavorite: isFavorite,
                   onToggleFavorite: _toggleFavorite,
                   onShare: _showShareSheet,
+                  isDownloaded: isDownloaded,
+                  onToggleDownload: _toggleDownload,
                 ),
 
                 const SizedBox(height: 10),
 
-                // zone scrollable
                 Expanded(
                   child: SingleChildScrollView(
                     child: Padding(
@@ -432,7 +463,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // titre + année
                           Text(
                             '${details.title} (${details.year})',
                             style: TextStyle(
@@ -443,18 +473,17 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 10),
 
-                          // genre • runtime • rated
                           Text(
                             '${details.genre} • ${details.runtime} • ${details.rated}',
                             style: TextStyle(
-                              color:
-                                  isDark ? Colors.grey[300] : Colors.grey[800],
+                              color: isDark
+                                  ? Colors.grey[300]
+                                  : Colors.grey[800],
                               fontSize: 14,
                             ),
                           ),
                           const SizedBox(height: 15),
 
-                          // rating
                           Row(
                             children: [
                               const Icon(
@@ -466,8 +495,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                               Text(
                                 details.imdbRating,
                                 style: TextStyle(
-                                  color:
-                                      isDark ? Colors.white : Colors.black,
+                                  color: isDark
+                                      ? Colors.white
+                                      : Colors.black,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -476,11 +506,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 15),
 
-                          // cast avec images TMDb
                           CastSection(cast: _cast),
                           const SizedBox(height: 10),
 
-                          // description / synopsis
                           Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16.0,
@@ -488,8 +516,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                             child: Text(
                               'Description',
                               style: TextStyle(
-                                color:
-                                    isDark ? Colors.white : Colors.black,
+                                color: isDark
+                                    ? Colors.white
+                                    : Colors.black,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -508,15 +537,13 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 20),
 
-                          // recommandations
                           const RecommendationSection(),
                           const SizedBox(height: 20),
 
-                          // User Reviews (sous le cast)
                           if (_reviews.isNotEmpty) ...[
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0),
                               child: Text(
                                 'User Reviews',
                                 style: TextStyle(
@@ -531,7 +558,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                             const SizedBox(height: 8),
                             Column(
                               children: _reviews
-                                  .take(3) // par ex. 3 premières reviews
+                                  .take(3)
                                   .map((r) => ReviewCard(review: r))
                                   .toList(),
                             ),

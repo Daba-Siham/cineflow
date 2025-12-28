@@ -1,4 +1,5 @@
 // lib/ui/views/home_page.dart
+import 'package:cineflow/ui/views/download_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -30,9 +31,7 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
   void initState() {
     super.initState();
     // Charge le catalogue une seule fois quand la page s'affiche
-    Future.microtask(
-      () => context.read<MovieProvider>().loadCatalog(),
-    );
+    Future.microtask(() => context.read<MovieProvider>().loadCatalog());
   }
 
   @override
@@ -47,9 +46,9 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
           SizedBox(height: 20),
           RecommendationSection(),
           SizedBox(height: 20),
-          MoviesCatalogSection(),   // Films du catalogue
+          MoviesCatalogSection(), // Films du catalogue
           SizedBox(height: 20),
-          SeriesCatalogSection(),   // Séries du catalogue
+          SeriesCatalogSection(), // Séries du catalogue
           SizedBox(height: 20),
         ],
       ),
@@ -71,16 +70,17 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> pages = const [
     MainWelcomePage(), // Page Accueil
-    SearchPage(),      // Page Recherche
-    FavoritesPage(),   // Page Favoris
+    SearchPage(), // Page Recherche
+    FavoritesPage(), // Page Favoris
   ];
 
   @override
   Widget build(BuildContext context) {
     // Vérifier si on est en mode sombre ou clair pour le logo
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    String logoPath =
-        isDarkMode ? 'assets/logo_sombre.png' : 'assets/logo_claire.png';
+    String logoPath = isDarkMode
+        ? 'assets/logo_sombre.png'
+        : 'assets/logo_claire.png';
 
     return Scaffold(
       appBar: AppBar(
@@ -96,10 +96,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(width: 10),
             const Text(
               'CineFlow',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.red,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
             ),
           ],
         ),
@@ -121,9 +118,19 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsPage(),
-                ),
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
+          ),
+
+          // A suuprimer *************?????
+          IconButton(
+            icon: const Icon(Icons.download),
+            tooltip: 'Téléchargements',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DownloadsPage()),
               );
             },
           ),
@@ -151,18 +158,9 @@ class _HomePageState extends State<HomePage> {
         selectedItemColor: Colors.red,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Accueil",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: "Recherche",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: "Favoris",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Accueil"),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Recherche"),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: "Favoris"),
         ],
       ),
     );

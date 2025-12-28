@@ -1,3 +1,4 @@
+import 'package:cineflow/providers/downloads_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -22,6 +23,10 @@ void main() {
           create: (_) => ThemeProvider(),
         ),
         ChangeNotifierProvider(create: (_) => SearchHistoryProvider()),
+        ChangeNotifierProvider(
+          create: (_) => DownloadsProvider()..loadDownloads(),
+        ),
+
       ],
       child: const MyApp(),
     ),
