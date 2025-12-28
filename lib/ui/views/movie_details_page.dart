@@ -11,6 +11,7 @@ import 'package:cineflow/data/services/api_service.dart';
 import 'package:cineflow/ui/widgets/movie_page_buttons.dart';
 import 'package:cineflow/ui/widgets/recommendation_section.dart';
 import '../widgets/cast_section.dart';
+import 'package:cineflow/providers/auth_provider.dart';
 
 class MovieDetailsPage extends StatefulWidget {
   final Movie movie;
@@ -100,26 +101,61 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
       genre: data.genre,
     );
 
-    await context.read<MovieProvider>().addToHistory(movieForHistory);
+    final auth = context.read<AuthProvider>();
+
+    await context.read<MovieProvider>().addToHistory(
+      movieForHistory,
+      auth: auth,
+    );
   }
 
   Future<void> _toggleFavorite() async {
+    final auth = context.read<AuthProvider>();
     final favProvider = context.read<FavoritesProvider>();
 
-    if (isFavorite) {
-      await favProvider.removeFavorite(widget.movie.imdbID);
+    if (!auth.isLoggedIn) {
       if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Connexion requise"),
+          content: const Text(
+            "Tu dois te connecter ou créer un compte pour ajouter des favoris.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+
+    if (isFavorite) {
+    await favProvider.removeFavorite(
+      widget.movie.imdbID,
+      auth: auth,
+    );
+
+    if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Retiré des favoris")),
       );
     } else {
-      await favProvider.addFavorite({
-        'id': widget.movie.imdbID,
-        'title': widget.movie.title,
-        'poster': widget.movie.poster,
-        'year': widget.movie.year,
-        'type': widget.movie.type,
-      });
+      await favProvider.addFavorite(
+        {
+          'id': widget.movie.imdbID,
+          'title': widget.movie.title,
+          'poster': widget.movie.poster,
+          'year': widget.movie.year,
+          'type': widget.movie.type,
+        },
+        auth: auth,
+      );
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Ajouté aux favoris")),
@@ -131,6 +167,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
       isFavorite = !isFavorite;
     });
   }
+
 
   // affiche le poster en grand au centre
   void _showPosterFullScreen(String url) {

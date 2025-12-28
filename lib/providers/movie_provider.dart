@@ -5,6 +5,8 @@ import 'package:cineflow/data/services/api_service.dart';
 import 'package:cineflow/data/services/database_service.dart';
 
 import '../core/constants/movie_queries.dart';
+import 'package:cineflow/providers/auth_provider.dart';
+import 'package:cineflow/data/services/history_api_service.dart';
 
 class MovieProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -13,25 +15,37 @@ class MovieProvider extends ChangeNotifier {
   List<Movie> _history = [];
   List<Movie> get history => _history;
 
-  Future<void> loadHistory() async {
+  Future<void> loadHistory({AuthProvider? auth}) async {
     try {
-      final data = await DatabaseService.getHistory();
-      _history = data.map((e) => Movie.fromMap(e)).toList();
+      if (auth != null && auth.isLoggedIn && auth.userId != null) {
+        final movies = await HistoryApiService.fetchHistory(auth.userId!);
+        _history = movies;
+      } else {
+        final data = await DatabaseService.getHistory();
+        _history = data.map((e) => Movie.fromMap(e)).toList();
+      }
     } catch (_) {
       _history = [];
     }
     notifyListeners();
   }
 
-  Future<void> addToHistory(Movie movie) async {
-    _history.removeWhere((item) => item.imdbID == movie.imdbID);
+  Future<void> addToHistory(
+    Movie movie, {
+    AuthProvider? auth,
+  }) async {
+    _history.removeWhere((m) => m.imdbID == movie.imdbID);
     _history.insert(0, movie);
     if (_history.length > 10) {
       _history.removeLast();
     }
 
     try {
-      await DatabaseService.insertHistory(movie);
+      if (auth != null && auth.isLoggedIn && auth.userId != null) {
+        await HistoryApiService.addToHistory(auth.userId!, movie);
+      } else {
+        await DatabaseService.insertHistory(movie);
+      }
     } catch (_) {}
 
     notifyListeners();
@@ -121,7 +135,7 @@ class MovieProvider extends ChangeNotifier {
   List<Movie> _catalog = [];
   List<Movie> get catalog => _catalog;
 
-    List<Movie> get catalogMovies =>
+  List<Movie> get catalogMovies =>
       _catalog.where((m) => m.type.toLowerCase() == 'movie').toList();
 
   List<Movie> get catalogSeries =>
@@ -130,7 +144,7 @@ class MovieProvider extends ChangeNotifier {
   bool _isCatalogLoading = false;
   bool get isCatalogLoading => _isCatalogLoading;
 
-    Future<void> loadCatalog() async {
+  Future<void> loadCatalog() async {
     if (_isCatalogLoading) return;
 
     _isCatalogLoading = true;
@@ -159,10 +173,8 @@ class MovieProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
   // Top films pour le carousel
-    // Top films pour le carousel (version rapide, sans recalcul de notes)
-   Future<List<Movie>> getTopRatedFromCatalog({int limit = 5}) async {
+  Future<List<Movie>> getTopRatedFromCatalog({int limit = 5}) async {
     if (catalog.isEmpty) {
       await loadCatalog();
     }
@@ -179,7 +191,6 @@ class MovieProvider extends ChangeNotifier {
         if (detail != null && detail.imdbRating.isNotEmpty) {
           final rating = double.tryParse(detail.imdbRating) ?? 0.0;
 
-          // on ignore les films sans note réelle
           if (rating > 0) {
             withRatings.add(MapEntry(m, rating));
           }
@@ -188,12 +199,10 @@ class MovieProvider extends ChangeNotifier {
     }
 
     if (withRatings.isEmpty) {
-      // fallback: au cas où aucune note > 0, on prend juste les premiers
       return moviesOnly.take(limit).toList();
     }
 
     withRatings.sort((a, b) => b.value.compareTo(a.value));
     return withRatings.take(limit).map((e) => e.key).toList();
   }
-
 }

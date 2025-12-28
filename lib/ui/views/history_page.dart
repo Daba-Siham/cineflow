@@ -3,9 +3,24 @@ import 'package:provider/provider.dart';
 import 'package:cineflow/providers/movie_provider.dart';
 import 'package:cineflow/ui/widgets/movie_card.dart';
 import 'package:cineflow/ui/widgets/empty_state.dart';
+import 'package:cineflow/providers/auth_provider.dart';
 
-class HistoryPage extends StatelessWidget {
+class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
+
+  @override
+  State<HistoryPage> createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() async {
+      final auth = context.read<AuthProvider>();
+      await context.read<MovieProvider>().loadHistory(auth: auth);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

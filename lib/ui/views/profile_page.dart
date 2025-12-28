@@ -5,6 +5,9 @@ import 'package:cineflow/providers/theme_provider.dart';
 import 'package:cineflow/ui/views/login_page.dart';
 import 'package:cineflow/ui/views/register_page.dart';
 import 'package:cineflow/core/constants/api_constants.dart';
+import 'package:cineflow/providers/movie_provider.dart';
+import 'package:cineflow/providers/favorites_provider.dart';
+
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -245,8 +248,20 @@ class ProfilePage extends StatelessWidget {
                       "Se déconnecter",
                       style: TextStyle(color: Colors.redAccent),
                     ),
-                    onTap: () {
-                      context.read<AuthProvider>().logout();
+                    onTap: () async {
+                      final auth = context.read<AuthProvider>();
+                      final movieProvider = context.read<MovieProvider>();
+                      final favProvider = context.read<FavoritesProvider>();
+
+                      await auth.logout();                    
+                      await movieProvider.loadHistory();      
+                      favProvider.clear();                    
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Déconnecté.")),
+                        );
+                      }
                     },
                   ),
                 ],

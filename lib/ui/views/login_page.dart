@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:cineflow/providers/auth_provider.dart';
+import 'package:cineflow/providers/movie_provider.dart';
+import 'package:cineflow/providers/favorites_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -29,7 +32,18 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = false);
 
     if (result['success'] == true) {
-      Navigator.pop(context);
+      // 👉 maintenant que le user est connecté,
+      // on recharge l'historique et les favoris pour CE user
+      final movieProvider = context.read<MovieProvider>();
+      final favProvider = context.read<FavoritesProvider>();
+
+      await movieProvider.loadHistory(auth: auth);
+      await favProvider.loadFavorites(auth: auth);
+
+      // puis on ferme la page de login
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } else {
       final msg = result['message'] ?? 'Erreur de connexion';
       ScaffoldMessenger.of(context)

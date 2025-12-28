@@ -12,8 +12,8 @@ import '../widgets/recommendation_section.dart';
 import '../widgets/series_catalog_section.dart';
 import 'package:cineflow/providers/movie_provider.dart';
 import 'package:cineflow/ui/views/profile_page.dart';
+import 'package:cineflow/providers/auth_provider.dart';
 
-// ----------------- PAGE ACCUEIL (MAINWELCOME) -----------------
 
 class MainWelcomePage extends StatefulWidget {
   const MainWelcomePage({super.key});
@@ -26,9 +26,13 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
   @override
   void initState() {
     super.initState();
-    // Charge le catalogue une seule fois quand la page s'affiche
     Future.microtask(
-      () => context.read<MovieProvider>().loadCatalog(),
+      () {
+        final movieProvider = context.read<MovieProvider>();
+        final auth = context.read<AuthProvider>();
+        movieProvider.loadCatalog();
+        movieProvider.loadHistory(auth: auth);
+      }
     );
   }
 
@@ -44,9 +48,9 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
           SizedBox(height: 20),
           RecommendationSection(),
           SizedBox(height: 20),
-          MoviesCatalogSection(),   // Films du catalogue
+          MoviesCatalogSection(),   
           SizedBox(height: 20),
-          SeriesCatalogSection(),   // Séries du catalogue
+          SeriesCatalogSection(),   
           SizedBox(height: 20),
         ],
       ),
