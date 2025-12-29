@@ -11,7 +11,6 @@ import 'package:cineflow/data/services/history_api_service.dart';
 class MovieProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
 
-  // ----------------- HISTORIQUE -----------------
   List<Movie> _history = [];
   // List<Movie> get history => _history;
   List<Movie> get history => List.unmodifiable(_history);
@@ -61,7 +60,6 @@ class MovieProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ----------------- RECHERCHE -----------------
   List<Movie> _results = [];
   List<Movie> get results => _results;
 
@@ -140,7 +138,6 @@ class MovieProvider extends ChangeNotifier {
     }
   }
 
-  // ----------------- CATALOGUE HOME -----------------
 
   List<Movie> _catalog = [];
   List<Movie> get catalog => _catalog;
@@ -162,13 +159,11 @@ class MovieProvider extends ChangeNotifier {
     try {
       final Map<String, Movie> tmp = {};
       for (final q in kCatalogQueries) {
-        // films
         final movieResults = await _apiService.searchMovies(q);
         for (final m in movieResults) {
           tmp[m.imdbID] = m;
         }
 
-        // séries
         final tvResults = await _apiService.searchSeries(q);
         for (final s in tvResults) {
           tmp[s.imdbID] = s;
@@ -183,7 +178,6 @@ class MovieProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Top films pour le carousel
   Future<List<Movie>> getTopRatedFromCatalog({int limit = 5}) async {
     if (catalog.isEmpty) {
       await loadCatalog();

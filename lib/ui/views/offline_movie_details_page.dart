@@ -1,4 +1,3 @@
-// lib/ui/views/offline_movie_details_page.dart
 import 'package:flutter/material.dart';
 import 'package:cineflow/data/models/movie.dart';
 
@@ -14,7 +13,6 @@ class OfflineMovieDetailsPage extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Fond (pas d'image réseau, on reste hors ligne)
           Container(
             height: 300,
             width: double.infinity,
@@ -24,7 +22,6 @@ class OfflineMovieDetailsPage extends StatelessWidget {
           SafeArea(
             child: Column(
               children: [
-                // Barre du haut : retour + badge "hors ligne"
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: 10,
@@ -74,7 +71,6 @@ class OfflineMovieDetailsPage extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // Poster (placeholder, pas d'appel réseau)
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 15,
@@ -180,7 +176,6 @@ class OfflineMovieDetailsPage extends StatelessWidget {
 
                           const SizedBox(height: 20),
 
-                          // Texte explicatif
                           Text(
                             "Ce titre a été enregistré dans vos téléchargements.\n"
                             "En mode hors ligne, seules les informations de base "

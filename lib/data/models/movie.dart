@@ -2,8 +2,8 @@ class Movie {
   final String title;
   final String year;
   final String genre;
-  final String imdbID; // id TMDb
-  final String type;   // 'movie' ou 'series'
+  final String imdbID; 
+  final String type; 
   final String poster;
   double? rating;
 
@@ -41,7 +41,6 @@ class Movie {
     };
   }
 
-  // isTv = true => JSON venant de /search/tv
   factory Movie.fromJson(
     Map<String, dynamic> json, {
     bool isTv = false,

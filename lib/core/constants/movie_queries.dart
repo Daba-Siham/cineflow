@@ -1,5 +1,3 @@
-// lib/core/constants/movie_queries.dart
-
 const List<String> kCatalogQueries = [
   // Sagas / univers
   'batman', 'superman', 'avengers', 'iron man', 'thor', 'captain america',

@@ -4,7 +4,6 @@ class PaginationBar extends StatelessWidget {
   final int currentPage;
   final int totalPages;
 
-  /// 1 => 1..5, 6 => 6..10, ...
   final int groupStart;
   final bool isDark;
 

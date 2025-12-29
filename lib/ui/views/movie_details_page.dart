@@ -40,10 +40,8 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
   bool isFavorite = false;
   bool isDownloaded = false;
 
-  // cast avec images
   List<CastMember> _cast = [];
 
-  // reviews utilisateurs TMDb
   List<Review> _reviews = [];
 
   @override
@@ -248,7 +246,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     );
   }
 
-  // lance une URL dans l'app externe (WhatsApp, Facebook, navigateur)
   Future<void> _launchUri(Uri uri) async {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (!mounted) return;
@@ -258,14 +255,12 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     }
   }
 
-  // bottom sheet de partage (thème clair/sombre)
   void _showShareSheet() {
     if (_details == null) return;
 
     final details = _details!;
     final isSeries = widget.movie.type.toLowerCase() == 'series';
 
-    // Ici on suppose que widget.movie.imdbID = id TMDB
     final String tmdbId = widget.movie.imdbID;
     final String tmdbUrl =
         'https://www.themoviedb.org/${isSeries ? 'tv' : 'movie'}/$tmdbId';
@@ -413,7 +408,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
           SafeArea(
             child: Column(
               children: [
-                // barre haute avec bouton retour
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: 10,
@@ -436,7 +430,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
 
                 const SizedBox(height: 20),
 
-                // poster
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 15,
@@ -523,7 +516,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 10),
 
-                          // genre • runtime • rated
                           Text(
                             '${details.genre} • ${details.runtime} • ${details.rated}',
                             style: TextStyle(
@@ -534,7 +526,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 15),
 
-                          // rating
                           Row(
                             children: [
                               const Icon(
@@ -556,11 +547,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 15),
 
-                          // cast avec images TMDb
                           CastSection(cast: _cast),
                           const SizedBox(height: 10),
 
-                          // description / synopsis
                           Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16.0,
@@ -588,11 +577,9 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                           ),
                           const SizedBox(height: 20),
 
-                          // recommandations
                           const RecommendationSection(),
                           const SizedBox(height: 20),
 
-                          // User Reviews (sous le cast)
                           if (_reviews.isNotEmpty) ...[
                             Padding(
                               padding:
@@ -611,7 +598,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                             const SizedBox(height: 8),
                             Column(
                               children: _reviews
-                                  .take(3) // par ex. 3 premières reviews
+                                  .take(3) 
                                   .map((r) => ReviewCard(review: r))
                                   .toList(),
                             ),

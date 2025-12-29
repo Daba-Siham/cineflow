@@ -56,7 +56,6 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
             child: Stack(
               alignment: Alignment.bottomCenter,
               children: [
-                // -------- CAROUSEL IMAGE --------
                 CarouselSlider(
                   options: CarouselOptions(
                     height: 470,
@@ -93,7 +92,6 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                   }).toList(),
                 ),
 
-                // -------- GRADIENT EN BAS --------
                 Positioned(
                   left: 0,
                   right: 0,
@@ -123,7 +121,6 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                   ),
                 ),
 
-                // -------- BOUTONS + DOTS --------
                 Positioned(
                   left: 0,
                   right: 0,
@@ -198,7 +195,7 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                             isLeft: true,
                           ),
                           const SizedBox(width: 12),
-                          // BOUTON DETAILS
+          
                           ActionButton(
                             label: 'Details',
                             color: Colors.white,

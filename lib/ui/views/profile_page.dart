@@ -22,7 +22,6 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
 
-    // On charge l’historique + favoris quand la page Profil apparaît
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
 
@@ -59,9 +58,6 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     }
 
-    // ======================
-    //  CAS NON CONNECTÉ
-    // ======================
     if (!auth.isLoggedIn) {
       return Scaffold(
         backgroundColor: isDark ? const Color(0xFF111111) : Colors.white,
@@ -143,9 +139,6 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     }
 
-    // ======================
-    //  CAS CONNECTÉ
-    // ======================
     final movieProvider = context.watch<MovieProvider>();
     final favProvider = context.watch<FavoritesProvider>();
 
@@ -174,7 +167,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: 24),
 
-            // ------- STATS -------
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -280,7 +272,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         context,
                         MaterialPageRoute(
                           builder: (_) =>
-                              const DownloadsPage(), // ta page de téléchargements
+                              const DownloadsPage(), 
                         ),
                       );
                     },
@@ -300,7 +292,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                     await authProv.logout();
 
-                    movieProv.clearHistoryInMemory(); // si tu l’as créé
+                    movieProv.clearHistoryInMemory(); 
                     favProv.clear();
                     await searchHistoryProv.switchUser(null);
 

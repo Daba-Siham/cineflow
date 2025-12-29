@@ -1,4 +1,3 @@
-// lib/providers/filtrage_provider.dart
 import 'package:cineflow/data/services/api_filtrage_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cineflow/data/models/movie.dart';
@@ -6,17 +5,14 @@ import 'package:cineflow/data/models/movie.dart';
 class FiltrageProvider extends ChangeNotifier {
   final ApiFiltrageService _api = ApiFiltrageService();
 
-  // Filters
-  String type = "all";   // all | movie | series
+  String type = "all";   
   String year = "";
   String genre = "all";
 
-  // Results
   List<Movie> results = [];
   bool isLoading = false;
   String? errorMessage;
 
-  // Pagination
   int _page = 1;
   int _groupStart = 1;
   int totalPages = 1;
@@ -24,7 +20,6 @@ class FiltrageProvider extends ChangeNotifier {
   int get currentPage => _page;
   int get groupStart => _groupStart;
 
-  // Genres
   final Map<String, int> _movieGenres = {};
   final Map<String, int> _tvGenres = {};
   bool _genresReady = false;
@@ -71,7 +66,7 @@ class FiltrageProvider extends ChangeNotifier {
 
 
   void _syncGroupFromPage() {
-    _groupStart = (((_page - 1) ~/ 5) * 5) + 1; // 1, 6, 11...
+    _groupStart = (((_page - 1) ~/ 5) * 5) + 1; 
   }
 
   Future<void> nextGroup() async {
@@ -148,7 +143,6 @@ class FiltrageProvider extends ChangeNotifier {
           year: y,
         );
 
-        // mix
         results = [...movieRes.items, ...tvRes.items];
         totalPages = (movieRes.totalPages > tvRes.totalPages)
             ? movieRes.totalPages

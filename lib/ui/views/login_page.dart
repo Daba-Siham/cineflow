@@ -34,8 +34,6 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = false);
 
     if (result['success'] == true) {
-      // maintenant que le user est connecté,
-      // on recharge l'historique et les favoris pour CE user
       final movieProvider = context.read<MovieProvider>();
       final favProvider = context.read<FavoritesProvider>();
 

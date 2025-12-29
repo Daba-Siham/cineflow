@@ -31,7 +31,6 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
       duration: const Duration(milliseconds: 3800),
     );
 
-    // 0.0 -> 0.4 : logo pop + fade au centre
     _logoScale = CurvedAnimation(
       parent: _controller,
       curve: const Interval(0.0, 0.4, curve: Curves.easeOutBack),
@@ -42,7 +41,6 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
       curve: const Interval(0.0, 0.3, curve: Curves.easeIn),
     );
 
-    // 0.7 -> 1.0 : logo glisse du centre vers la gauche
     _logoAlignment = AlignmentTween(
       begin: Alignment.center,
       end: const Alignment(-0.5, 0.0),
@@ -53,7 +51,6 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
       ),
     );
 
-    // Texte qui apparaît à droite après le déplacement du logo
     _textOffset = Tween<Offset>(
       begin: const Offset(0.4, 0.0),
       end: Offset.zero,
@@ -69,15 +66,12 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
       curve: const Interval(0.7, 1.0, curve: Curves.easeIn),
     );
 
-    // Lancer l’animation
     _controller.forward();
 
-    // Lancer le chargement API (catalogue) pendant le splash
     Future.microtask(() async {
       await Provider.of<MovieProvider>(context, listen: false).loadCatalog();
     });
 
-    // Aller vers Home une fois l'animation terminée
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -91,7 +85,6 @@ class _CineFlowSplashPageState extends State<CineFlowSplashPage>
     super.dispose();
   }
 
-  // Texte "CineFlow" lettre par lettre
   Widget _buildTypewriterText() {
     final animationValue = _controller.value;
 

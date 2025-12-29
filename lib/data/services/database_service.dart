@@ -6,11 +6,10 @@ class DatabaseService {
   static Database? _db;
 
   static const String _dbName = 'cineflow.db';
-  static const int _dbVersion = 2; // ⚠️ on incrémente la version
+  static const int _dbVersion = 2; 
   static const String tableHistory = 'history';
   static const String tableDownloads = 'downloads';
 
-  // ---------- Ouverture unique de la DB ----------
   static Future<Database> _getDb() async {
     if (_db != null) return _db!;
 
@@ -27,9 +26,7 @@ class DatabaseService {
     return _db!;
   }
 
-  // ---------- Création initiale ----------
   static Future<void> _onCreate(Database db, int version) async {
-    // Table historique
     await db.execute('''
       CREATE TABLE $tableHistory(
         id TEXT PRIMARY KEY,
@@ -56,7 +53,6 @@ class DatabaseService {
       )
     ''');
 
-    // Table téléchargements
     await db.execute('''
       CREATE TABLE $tableDownloads (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,11 +68,9 @@ class DatabaseService {
     ''');
   }
 
-  // ---------- Upgrade (si la DB existe déjà en version 1) ----------
   static Future<void> _onUpgrade(
       Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      // On ajoute la table downloads si elle n’existe pas
       await db.execute('''
         CREATE TABLE IF NOT EXISTS $tableDownloads (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,13 +87,9 @@ class DatabaseService {
     }
   }
 
-  // ---------- Compat pour ton ancien code ----------
   static Future<Database> initDB() async {
-    // pour tout le code qui appelle encore initDB()
     return _getDb();
   }
-
-  // ================== HISTORY ==================
 
   static Future<List<Map<String, dynamic>>> getHistory() async {
     final db = await _getDb();
@@ -124,8 +114,6 @@ class DatabaseService {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
-
-  // ================== DOWNLOADS ==================
 
   static Future<List<Map<String, dynamic>>> getDownloads(int userId) async {
     final db = await _getDb();

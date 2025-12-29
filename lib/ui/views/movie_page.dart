@@ -70,7 +70,7 @@ class _MoviesPageState extends State<MoviesPage> {
             child: GridView.builder(
               padding: const EdgeInsets.all(8),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // 2 MovieCard par ligne
+                crossAxisCount: 2,
                 childAspectRatio: 0.65,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,

@@ -50,7 +50,6 @@ class MoviePageButtons extends StatelessWidget {
             ),
           ),
 
-          // DOWNLOAD
           InkWell(
             onTap: onToggleDownload,
             child: Container(
@@ -74,7 +73,6 @@ class MoviePageButtons extends StatelessWidget {
             ),
           ),
 
-          // SHARE
           InkWell(
             onTap: onShare,
             child: Container(

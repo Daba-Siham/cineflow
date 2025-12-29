@@ -1,5 +1,3 @@
-// lib/core/constants/tmdb_genres.dart
-
 class TmdbGenres {
   // Genres MOVIE
   static const Map<String, int> movie = {

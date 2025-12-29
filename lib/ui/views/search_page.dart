@@ -1,4 +1,3 @@
-// lib/ui/views/search_page.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +29,6 @@ class _SearchPageState extends State<SearchPage> {
 
   bool _showAllRecent = false;
 
-  // Pagination locale sur les résultats
   static const int perPage = 10;
   int _currentPage = 1;
   int _groupStart = 1;
@@ -123,7 +121,6 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
-  // Pagination handlers
   void _onPageSelected(int p) {
     setState(() => _currentPage = p);
   }
@@ -158,7 +155,6 @@ class _SearchPageState extends State<SearchPage> {
     final List<String> visibleSearches =
         _showAllRecent ? allRecent : allRecent.take(maxVisible).toList();
 
-    // Pagination calculée sur les résultats actuels
     final results = movieProvider.results;
     final totalPages =
         (results.length / perPage).ceil().clamp(1, 9999);
@@ -174,7 +170,6 @@ class _SearchPageState extends State<SearchPage> {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          // Barre de recherche
           TextField(
             controller: _controller,
             style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
@@ -224,9 +219,6 @@ class _SearchPageState extends State<SearchPage> {
 
           const SizedBox(height: 16),
 
-          // Recently Searched :
-          // - Champ vide ET au moins 1 recherche => afficher
-          // - Sinon => rien
           if (!hasQuery && allRecent.isNotEmpty) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

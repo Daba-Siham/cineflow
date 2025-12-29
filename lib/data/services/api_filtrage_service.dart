@@ -1,4 +1,3 @@
-// lib/data/services/api_filtrage_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -24,7 +23,6 @@ class ApiFiltrageService {
     final data = jsonDecode(res.body) as Map<String, dynamic>;
     final List genres = (data['genres'] as List?) ?? [];
 
-    // name(lowercase) -> id
     return {
       for (final g in genres)
         ((g['name'] ?? '').toString().toLowerCase().trim()): (g['id'] as int),
@@ -49,12 +47,11 @@ class ApiFiltrageService {
     };
   }
 
-  /// type: "movie" ou "series"
   Future<DiscoverResponse> discover({
     required String type,
     int page = 1,
     int? genreId,
-    String? year, // "2019"
+    String? year, 
   }) async {
     final bool isTv = (type == "series");
     final endpoint = isTv ? "discover/tv" : "discover/movie";
@@ -73,7 +70,6 @@ class ApiFiltrageService {
 
     final y = (year ?? "").trim();
     if (y.isNotEmpty) {
-      // TMDb: movie -> primary_release_year, tv -> first_air_date_year
       params[isTv ? "first_air_date_year" : "primary_release_year"] = y;
     }
 

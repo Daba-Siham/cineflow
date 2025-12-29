@@ -1,4 +1,3 @@
-// lib/ui/widgets/drawer_filtrage.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -35,7 +34,6 @@ class DrawerFiltrage extends StatelessWidget {
               ),
               const SizedBox(height: 18),
 
-              // TYPE
               Text("Type", style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
@@ -49,14 +47,12 @@ class DrawerFiltrage extends StatelessWidget {
                 onChanged: (v) {
                   if (v == null) return;
                   context.read<FiltrageProvider>().setType(v);
-                  // si on change type, on remet genre sur all pour éviter mismatch
                   context.read<FiltrageProvider>().setGenre("all");
                 },
               ),
 
               const SizedBox(height: 16),
 
-              // GENRE
               Text("Genre", style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
@@ -73,7 +69,6 @@ class DrawerFiltrage extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // YEAR
               Text("Année", style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
               const SizedBox(height: 6),
               TextFormField(

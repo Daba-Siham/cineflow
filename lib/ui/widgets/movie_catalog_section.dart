@@ -15,7 +15,7 @@ class MoviesCatalogSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final movieProvider = context.watch<MovieProvider>();
     final movies = List<Movie>.from(movieProvider.catalogMovies);
-    movies.shuffle(); // optionnel [file:5][file:13]
+    movies.shuffle(); 
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +55,7 @@ class MoviesCatalogSection extends StatelessWidget {
             height: 200,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: movies.length > 10 ? 10 : movies.length, // 10 sur home
+              itemCount: movies.length > 10 ? 10 : movies.length, 
               itemBuilder: (context, index) => MovieCard(movie: movies[index]),
             ),
           ),

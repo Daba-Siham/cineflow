@@ -18,7 +18,6 @@ class AuthProvider extends ChangeNotifier {
   String? get email => _email;
   String? get imgProfile => _imgProfile;
 
-  // ---------- INIT : charger depuis SharedPreferences ----------
   Future<void> init() async {
     final prefs = await AppPrefs.instance;
 
@@ -26,7 +25,6 @@ class AuthProvider extends ChangeNotifier {
     final savedId = prefs.getInt(AppPrefs.keyUserId);
 
     if (!savedLoggedIn || savedId == null) {
-      // Pas de user sauvegardé
       _isLoggedIn = false;
       return;
     }
@@ -40,7 +38,6 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---------- Sauvegarde dans SharedPreferences ----------
   Future<void> _saveToPrefs() async {
     final prefs = await AppPrefs.instance;
 
@@ -56,7 +53,6 @@ class AuthProvider extends ChangeNotifier {
     await prefs.setString(AppPrefs.keyImgProfile, _imgProfile ?? '');
   }
 
-  // ---------- REGISTER ----------
   Future<Map<String, dynamic>> register(
     String username,
     String email,
@@ -85,7 +81,6 @@ class AuthProvider extends ChangeNotifier {
     return result;
   }
 
-  // ---------- LOGIN ----------
   Future<Map<String, dynamic>> login(String username, String password) async {
     final result = await _service.login(
       username: username,
@@ -108,7 +103,6 @@ class AuthProvider extends ChangeNotifier {
     return result;
   }
 
-  // ---------- REFRESH depuis backend ----------
   Future<void> refreshUser() async {
     if (_userId == null) return;
 
@@ -123,7 +117,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // ---------- UPLOAD AVATAR ----------
   Future<bool> uploadAvatar(XFile image) async {
     if (_userId == null) return false;
 
@@ -142,7 +135,6 @@ class AuthProvider extends ChangeNotifier {
     return false;
   }
 
-  // ---------- LOGOUT ----------
   Future<void> logout() async {
     _isLoggedIn = false;
     _userId = null;

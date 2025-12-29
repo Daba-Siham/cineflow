@@ -13,7 +13,6 @@ class ReviewCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dateStr = DateFormat('yyyy-MM-dd').format(review.createdAt);
 
-    // avatar complet TMDb (avatar_path peut commencer par / ou par URL)
     String? avatarUrl;
     if (review.avatarPath != null && review.avatarPath!.isNotEmpty) {
       if (review.avatarPath!.startsWith('/https')) {
@@ -34,7 +33,6 @@ class ReviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // header: avatar + nom + date + rating
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [

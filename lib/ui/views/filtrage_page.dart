@@ -1,4 +1,3 @@
-// lib/ui/views/filtrage_page.dart
 import 'package:cineflow/ui/widgets/drawer_filtrage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -59,7 +58,7 @@ class _FiltrageBody extends StatelessWidget {
               child: PaginationBar(
                 currentPage: p.currentPage,
                 totalPages: p.totalPages,
-                groupStart: p.groupStart,     // ✅ from provider
+                groupStart: p.groupStart,     
                 isDark: isDark,
                 onPrevGroup: () => context.read<FiltrageProvider>().prevGroup(),
                 onNextGroup: () => context.read<FiltrageProvider>().nextGroup(),

@@ -9,7 +9,6 @@ class DownloadsProvider extends ChangeNotifier {
   int? _userId;
   int? get userId => _userId;
 
-  // à appeler quand le user change (login / logout / init)
   Future<void> setUser(int? userId) async {
     _userId = userId;
     if (_userId == null) {

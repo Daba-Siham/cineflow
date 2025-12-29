@@ -83,7 +83,6 @@ class _HomePageState extends State<HomePage> {
       final auth = context.read<AuthProvider>();
       final downloads = context.read<DownloadsProvider>();
 
-      // userId = null si pas connecté
       await downloads.setUser(auth.userId);
     });
   }
