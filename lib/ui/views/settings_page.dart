@@ -46,7 +46,7 @@ class SettingsPage extends StatelessWidget {
             leading: const Icon(Icons.code),
             title: const Text("Développé par l'équipe CineFlow"),
             onTap: () {
-              // Action optionnelle
+            
             },
           ),
         ],

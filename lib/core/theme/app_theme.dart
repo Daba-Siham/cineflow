@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // 🌙 MODE SOMBRE
   static final darkTheme = ThemeData(
     brightness: Brightness.dark,
     scaffoldBackgroundColor: Colors.black,
@@ -10,7 +9,7 @@ class AppTheme {
     colorScheme: const ColorScheme.dark(
       primary: Colors.red,
       secondary: Colors.redAccent,
-      surface: Color(0xFF1E1E1E), // Grey foncé
+      surface: Color(0xFF1E1E1E), 
     ),
 
     appBarTheme: const AppBarTheme(
@@ -22,7 +21,7 @@ class AppTheme {
 
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.grey[900], // 🔥 Grey foncé
+      fillColor: Colors.grey[900],
       hintStyle: TextStyle(color: Colors.grey[400]),
       prefixIconColor: Colors.red,
       border: OutlineInputBorder(
@@ -45,7 +44,7 @@ class AppTheme {
     colorScheme: const ColorScheme.light(
       primary: Colors.red,
       secondary: Colors.redAccent,
-      surface: Color(0xFFF2F2F2), // Grey clair
+      surface: Color(0xFFF2F2F2), 
     ),
 
     appBarTheme: const AppBarTheme(
@@ -57,7 +56,7 @@ class AppTheme {
 
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Color(0xFFF0F0F0), // 🔥 Grey clair
+      fillColor: Color(0xFFF0F0F0), 
       hintStyle: TextStyle(color: Colors.grey),
       prefixIconColor: Colors.red,
       border: OutlineInputBorder(

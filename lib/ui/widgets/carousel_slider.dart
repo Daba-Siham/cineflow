@@ -8,6 +8,7 @@ import 'package:cineflow/data/models/movie.dart';
 import 'package:cineflow/ui/views/movie_details_page.dart';
 
 import 'button_carousel.dart';
+import 'package:cineflow/providers/auth_provider.dart';
 
 class CarouselSliderHome extends StatefulWidget {
   const CarouselSliderHome({super.key});
@@ -55,7 +56,6 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
             child: Stack(
               alignment: Alignment.bottomCenter,
               children: [
-                // -------- CAROUSEL IMAGE --------
                 CarouselSlider(
                   options: CarouselOptions(
                     height: 470,
@@ -92,7 +92,6 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                   }).toList(),
                 ),
 
-                // -------- GRADIENT EN BAS --------
                 Positioned(
                   left: 0,
                   right: 0,
@@ -122,7 +121,6 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                   ),
                 ),
 
-                // -------- BOUTONS + DOTS --------
                 Positioned(
                   left: 0,
                   right: 0,
@@ -133,20 +131,42 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // BOUTON FAVORITE
                           ActionButton(
                             label: 'Favorite',
                             color: Colors.red,
                             icon: Icons.favorite,
                             onTap: () async {
+                              final auth = context.read<AuthProvider>();
                               final favProvider =
                                   context.read<FavoritesProvider>();
+                              if (!auth.isLoggedIn) {
+                                if (!mounted) return;
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: const Text("Connexion requise"),
+                                    content: const Text(
+                                      "Connecte-toi ou crée un compte pour ajouter des favoris.",
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text("OK"),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                return;
+                              }
+
                               final alreadyFav =
                                   favProvider.isFavorite(currentMovie.imdbID);
 
                               if (alreadyFav) {
-                                await favProvider
-                                    .removeFavorite(currentMovie.imdbID);
+                                await favProvider.removeFavorite(
+                                  currentMovie.imdbID,
+                                  auth: auth,
+                                );
                               } else {
                                 final movieMap = {
                                   'id': currentMovie.imdbID,
@@ -155,7 +175,10 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                                   'year': currentMovie.year,
                                   'type': currentMovie.type,
                                 };
-                                await favProvider.addFavorite(movieMap);
+                                await favProvider.addFavorite(
+                                  movieMap,
+                                  auth: auth,
+                                );
                               }
 
                               if (!mounted) return;
@@ -172,7 +195,7 @@ class CarouselSliderHomeState extends State<CarouselSliderHome> {
                             isLeft: true,
                           ),
                           const SizedBox(width: 12),
-                          // BOUTON DETAILS
+          
                           ActionButton(
                             label: 'Details',
                             color: Colors.white,

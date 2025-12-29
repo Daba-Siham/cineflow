@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
-// Bouton arrondi flexible
 class ActionButton extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color color;
   final Color textColor;
   final VoidCallback onTap;
-  final bool isLeft; // true = bouton gauche, false = bouton droit
+  final bool isLeft; 
 
   const ActionButton({
     required this.label,
@@ -23,7 +22,6 @@ class ActionButton extends StatelessWidget {
     BorderRadius radius;
 
     if (isLeft) {
-      // coins arrondis à gauche
       radius = const BorderRadius.only(
         topLeft: Radius.circular(30),
         bottomLeft: Radius.circular(30),
@@ -31,7 +29,6 @@ class ActionButton extends StatelessWidget {
         bottomRight: Radius.circular(30),
       );
     } else {
-      // coins arrondis à droite
       radius = const BorderRadius.only(
         topLeft: Radius.zero,
         bottomLeft: Radius.circular(30),

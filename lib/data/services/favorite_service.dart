@@ -32,7 +32,6 @@ class FavoritesService {
     );
   }
 
-  // CREATE
   Future<void> insertFavorite(Map<String, dynamic> movie) async {
     final db = await database;
     await db.insert(
@@ -42,13 +41,11 @@ class FavoritesService {
     );
   }
 
-  // READ
   Future<List<Map<String, dynamic>>> getFavorites() async {
     final db = await database;
     return await db.query('favorites');
   }
 
-  //  DELETE
   Future<void> deleteFavorite(String id) async {
     final db = await database;
     await db.delete(

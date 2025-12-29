@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:cineflow/providers/auth_provider.dart';
 import 'package:cineflow/ui/views/home_page.dart';
+import 'package:cineflow/providers/downloads_provider.dart';
+
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -54,13 +56,19 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = false);
 
     if (result['success'] == true) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (_) => HomePage(initialIndex: 3),
-        ),
-        (route) => false,
-      );
+      await context.read<DownloadsProvider>().setUser(auth.userId);
+
+      // Navigator.pushAndRemoveUntil(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (_) => HomePage(initialIndex: 3),
+      //   ),
+      //   (route) => false,
+      // );
+      if (mounted) {
+  Navigator.pop(context);
+}
+
     } else {
       final msg = result['message'] ?? "Erreur d'inscription";
       ScaffoldMessenger.of(context).showSnackBar(

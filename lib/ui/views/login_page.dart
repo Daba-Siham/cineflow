@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:cineflow/providers/auth_provider.dart';
+import 'package:cineflow/providers/movie_provider.dart';
+import 'package:cineflow/providers/favorites_provider.dart';
+import 'package:cineflow/providers/downloads_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -25,11 +29,25 @@ class _LoginPageState extends State<LoginPage> {
       _usernameController.text.trim(),
       _passwordController.text.trim(),
     );
+    print(result);
 
     setState(() => _isLoading = false);
 
     if (result['success'] == true) {
-      Navigator.pop(context);
+      final movieProvider = context.read<MovieProvider>();
+      final favProvider = context.read<FavoritesProvider>();
+
+
+      await movieProvider.loadHistory(auth: auth);
+      await favProvider.loadFavorites(auth: auth);
+      await context.read<DownloadsProvider>().setUser(auth.userId);
+
+
+      if (mounted) {
+        Navigator.pop(context);
+        
+      }
+      
     } else {
       final msg = result['message'] ?? 'Erreur de connexion';
       ScaffoldMessenger.of(context)
