@@ -7,11 +7,34 @@ import 'package:cineflow/ui/views/register_page.dart';
 import 'package:cineflow/core/constants/api_constants.dart';
 import 'package:cineflow/providers/movie_provider.dart';
 import 'package:cineflow/providers/favorites_provider.dart';
-
-
-
-class ProfilePage extends StatelessWidget {
+import 'package:cineflow/providers/search_history_provider.dart';
+import 'package:cineflow/providers/downloads_provider.dart';
+import 'package:cineflow/ui/views/downloads_page.dart';
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+
+    // On charge l’historique + favoris quand la page Profil apparaît
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = context.read<AuthProvider>();
+
+      if (auth.isLoggedIn) {
+        context.read<MovieProvider>().loadHistory(auth: auth);
+        context.read<FavoritesProvider>().loadFavorites(auth: auth);
+        context.read<DownloadsProvider>().setUser(auth.userId);
+      } else {
+        context.read<DownloadsProvider>().setUser(null); 
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +43,7 @@ class ProfilePage extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final themeProvider = context.watch<ThemeProvider>();
 
+    // Avatar
     Widget avatar;
     if (auth.imgProfile != null && auth.imgProfile!.isNotEmpty) {
       avatar = CircleAvatar(
@@ -35,6 +59,9 @@ class ProfilePage extends StatelessWidget {
       );
     }
 
+    // ======================
+    //  CAS NON CONNECTÉ
+    // ======================
     if (!auth.isLoggedIn) {
       return Scaffold(
         backgroundColor: isDark ? const Color(0xFF111111) : Colors.white,
@@ -48,7 +75,7 @@ class ProfilePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 16),
-              avatar, 
+              avatar,
               const SizedBox(height: 24),
               Text(
                 "Connectez-vous à cineFlow",
@@ -116,12 +143,14 @@ class ProfilePage extends StatelessWidget {
       );
     }
 
+    // ======================
+    //  CAS CONNECTÉ
+    // ======================
     final movieProvider = context.watch<MovieProvider>();
     final favProvider = context.watch<FavoritesProvider>();
 
     final int moviesWatched = movieProvider.history.length;
     final int favoritesCount = favProvider.favorites.length;
-
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF111111) : Colors.white,
@@ -135,7 +164,7 @@ class ProfilePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 8),
-            avatar, 
+            avatar,
             const SizedBox(height: 16),
             Text(
               auth.username,
@@ -144,6 +173,8 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+
+            // ------- STATS -------
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -199,6 +230,7 @@ class ProfilePage extends StatelessWidget {
                 ],
               ),
             ),
+
             const SizedBox(height: 24),
             Align(
               alignment: Alignment.centerLeft,
@@ -210,6 +242,7 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
+
             Expanded(
               child: ListView(
                 children: [
@@ -226,18 +259,31 @@ class ProfilePage extends StatelessWidget {
                     onTap: () {},
                   ),
                   const Divider(),
+                  // ListTile(
+                  //   leading: const Icon(Icons.language_outlined),
+                  //   title: const Text("Langue"),
+                  //   trailing: Row(
+                  //     mainAxisSize: MainAxisSize.min,
+                  //     children: const [
+                  //       Text("Français"),
+                  //       SizedBox(width: 8),
+                  //       Icon(Icons.chevron_right),
+                  //     ],
+                  //   ),
+                  //   onTap: () {},
+                  // ),
                   ListTile(
-                    leading: const Icon(Icons.language_outlined),
-                    title: const Text("Langue"),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Text("Français"),
-                        SizedBox(width: 8),
-                        Icon(Icons.chevron_right),
-                      ],
-                    ),
-                    onTap: () {},
+                    leading: const Icon(Icons.download),
+                    title: const Text('Ma liste'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const DownloadsPage(), // ta page de téléchargements
+                        ),
+                      );
+                    },
                   ),
                   const Divider(),
                   ListTile(
@@ -247,20 +293,24 @@ class ProfilePage extends StatelessWidget {
                       style: TextStyle(color: Colors.redAccent),
                     ),
                     onTap: () async {
-                      final auth = context.read<AuthProvider>();
-                      final movieProvider = context.read<MovieProvider>();
-                      final favProvider = context.read<FavoritesProvider>();
+                    final authProv = context.read<AuthProvider>();
+                    final favProv = context.read<FavoritesProvider>();
+                    final movieProv = context.read<MovieProvider>();
+                    final searchHistoryProv = context.read<SearchHistoryProvider>();
 
-                      await auth.logout();                    
-                      await movieProvider.loadHistory();      
-                      favProvider.clear();                    
+                    await authProv.logout();
 
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Déconnecté.")),
-                        );
-                      }
-                    },
+                    movieProv.clearHistoryInMemory(); // si tu l’as créé
+                    favProv.clear();
+                    await searchHistoryProv.switchUser(null);
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Déconnecté.")),
+                      );
+                    }
+                  },
+
                   ),
                 ],
               ),

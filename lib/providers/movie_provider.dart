@@ -13,7 +13,17 @@ class MovieProvider extends ChangeNotifier {
 
   // ----------------- HISTORIQUE -----------------
   List<Movie> _history = [];
-  List<Movie> get history => _history;
+  // List<Movie> get history => _history;
+  List<Movie> get history => List.unmodifiable(_history);
+
+  void clearHistory() {
+    _history.clear();
+    notifyListeners();
+  }
+  void clearHistoryInMemory() {
+    _history.clear();
+    notifyListeners();
+  }
 
   Future<void> loadHistory({AuthProvider? auth}) async {
     try {

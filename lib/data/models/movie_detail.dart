@@ -12,7 +12,7 @@ class MovieDetail {
   final String plot;
   final String poster;
   final String imdbRating;
-  final String type; // 'movie' ou 'series'
+  final String type; 
 
   MovieDetail({
     required this.title,

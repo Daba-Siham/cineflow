@@ -13,6 +13,9 @@ import '../widgets/series_catalog_section.dart';
 import 'package:cineflow/providers/movie_provider.dart';
 import 'package:cineflow/ui/views/profile_page.dart';
 import 'package:cineflow/providers/auth_provider.dart';
+import 'package:cineflow/ui/views/downloads_page.dart';
+import 'package:cineflow/ui/views/filtrage_page.dart';
+import 'package:cineflow/providers/downloads_provider.dart';
 
 
 class MainWelcomePage extends StatefulWidget {
@@ -34,6 +37,7 @@ class _MainWelcomePageState extends State<MainWelcomePage> {
         movieProvider.loadHistory(auth: auth);
       }
     );
+    Future.microtask(() => context.read<MovieProvider>().loadCatalog());
   }
 
   @override
@@ -75,6 +79,13 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     index = widget.initialIndex; 
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final auth = context.read<AuthProvider>();
+      final downloads = context.read<DownloadsProvider>();
+
+      // userId = null si pas connecté
+      await downloads.setUser(auth.userId);
+    });
   }
 
 
@@ -133,8 +144,29 @@ class _HomePageState extends State<HomePage> {
               );
             },
           ),
+          // IconButton(
+          //   icon: const Icon(Icons.download),
+          //   tooltip: 'Téléchargements',
+          //   onPressed: () {
+          //     Navigator.push(
+          //       context,
+          //       MaterialPageRoute(builder: (_) => const DownloadsPage()),
+          //     );
+          //   },
+          // ),
+          IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: "Filtrer",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FiltragePage()),
+              );
+            },
+          ),
         ],
       ),
+      
       body: pages[safeIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: safeIndex,

@@ -5,6 +5,7 @@ class Movie {
   final String imdbID; // id TMDb
   final String type;   // 'movie' ou 'series'
   final String poster;
+  double? rating;
 
   Movie({
     required this.title,
@@ -13,17 +14,31 @@ class Movie {
     required this.imdbID,
     required this.type,
     required this.poster,
+    this.rating,
   });
 
   factory Movie.fromMap(Map<String, dynamic> map) {
+    final id = (map['tmdb_id'] ?? map['id'] ?? '').toString();
     return Movie(
-      imdbID: map['id'] ?? '',
-      title: map['title'] ?? '',
-      year: map['year'] ?? '',
-      genre: map['genre'] ?? '',
-      poster: map['poster'] ?? '',
-      type: map['type'] ?? '',
+      imdbID: id,
+      title: (map['title'] ?? '').toString(),
+      year: (map['year'] ?? '').toString(),
+      genre: (map['genre'] ?? '').toString(),
+      poster: (map['poster'] ?? '').toString(),
+      type: (map['type'] ?? '').toString(),
+      rating: map['rating'] is num ? (map['rating'] as num).toDouble() : null,
     );
+  }
+  Map<String, dynamic> toMap() {
+    return {
+      'id': imdbID,
+      'title': title,
+      'year': year,
+      'genre': genre,
+      'poster': poster,
+      'type': type,
+      'rating': rating,
+    };
   }
 
   // isTv = true => JSON venant de /search/tv
@@ -34,10 +49,13 @@ class Movie {
     final String date =
         isTv ? (json['first_air_date'] ?? '') : (json['release_date'] ?? '');
     final String year = date.isNotEmpty ? date.substring(0, 4) : '';
-
     final String title = isTv
         ? (json['name'] ?? json['original_name'] ?? '')
         : (json['title'] ?? '');
+
+    final double? voteAverage = (json['vote_average'] is num)
+        ? (json['vote_average'] as num).toDouble()
+        : null;
 
     return Movie(
       title: title,
@@ -48,6 +66,7 @@ class Movie {
       poster: json['poster_path'] != null
           ? 'https://image.tmdb.org/t/p/w500${json['poster_path']}'
           : 'https://dummyimage.com/400x600/cccccc/000000&text=No+Image',
+      rating: voteAverage,
     );
   }
 }

@@ -8,15 +8,25 @@ import 'package:cineflow/providers/favorites_provider.dart';
 
 import 'package:cineflow/ui/views/home_page.dart';
 import 'package:cineflow/ui/views/splash_page.dart';
+import 'package:cineflow/providers/downloads_provider.dart';
+import 'package:cineflow/providers/search_history_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final authProvider = AuthProvider();
+  
   await authProvider.init();
 
   final themeProvider = ThemeProvider();
   await themeProvider.init();
+
+  final movieProvider = MovieProvider();
+  await movieProvider.loadHistory(auth: authProvider);
+
+  final favoritesProvider = FavoritesProvider();
+  await favoritesProvider.loadFavorites(auth: authProvider);
+
   runApp(
     MultiProvider(
       providers: [
@@ -28,6 +38,10 @@ void main() async {
         ),
         ChangeNotifierProvider<FavoritesProvider>(
           create: (_) => FavoritesProvider(),
+        ),
+        ChangeNotifierProvider(create: (_) => DownloadsProvider()),
+        ChangeNotifierProvider<SearchHistoryProvider>(
+          create: (_) => SearchHistoryProvider(),
         ),
       ],
       child: const MyApp(),

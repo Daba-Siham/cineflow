@@ -63,12 +63,11 @@ class AuthProvider extends ChangeNotifier {
     String password, {
     XFile? image,
   }) async {
-    // ⚠️ adapte selon ton AuthService.register (avec ou sans image)
     final result = await _service.register(
       username: username,
       email: email,
       password: password,
-      // image: image, // si tu as ajouté ça dans le service
+      image: image, 
     );
 
     if (result['success'] == true) {
